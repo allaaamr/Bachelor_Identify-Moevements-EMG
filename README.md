@@ -1,0 +1,2 @@
+# Bachelor_Identify-Moevements-EMG
+This project aims at developing a machine learning system that can identify movement directions from electromyography (EMG) activity. This could enable patients suffering arm disabilities to be able to keep his/her daily activities and being independent in performing essential tasks such as eating, drinking and holding objects. In this project, signal processing and machine learning methods will be used to analyze EMG activity and predict the intended movement direction. A
