@@ -1,9 +1,18 @@
 import pandas as pd
 import numpy as np
 import scipy.io
+import math
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0]+1)
+
+def pretty(d, indent=0):
+    for key, value in d.items():
+        print('\t' * indent + str(key))
+        if isinstance(value, dict):
+            pretty(value, indent+2)
+        else:
+            print('\t' * (indent+2) + str(value))
 
 #Extracting Data Of Ex 1
 ex1 = scipy.io.loadmat('S1_A1_E1.mat')
@@ -53,22 +62,62 @@ for m in range(1,51):
             df = EMG.iloc[startIndex:LastIndex, e-1]
             df.reset_index(drop=True, inplace=True)
             narray = df.to_numpy(dtype=None, copy=False)
-            temp["R{0}".format(r)] = df
+            temp["R{0}".format(r)] = narray
         Electrodes["Electrode{0}".format(e)] = temp
     Movements["Movement{0}".format(m)] = Electrodes
 
 
 # #Convert dictionary to dataframe
 dff = pd.DataFrame.from_dict(Movements)
-print(dff)
-# print(dff['Movement1'])
+# print(dff)
 # print(dff.loc['Electrode1'])
 
 
+def rms(arr):
+    n= len(arr)
+    square = 0
+    #Calculate square
+    for i in range(0,n):
+        square += (arr[i]**2)
+    #Calculate Mean
+    mean = (square / (float)(n))
+    #Calculate Root
+    root = math.sqrt(mean)
+    return root
+def mav(arr):
+    n= len(arr)
+    absSum = 0
+    for i in range(0,n):
+        absSum += abs(arr[i])
+    mav = (absSum / (float)(n))
+    return mav
+
+## Features
+
+def applyFeature(n):
+    if (n==1):
+        method = rms;
+    elif (n==2):
+        method = mav;
+    Electrodes= {}
+    for e in range(1,11):
+        Movements={}
+        for m in range(1,51):
+             columnName = "Movement" + str(m)
+             table = dff[columnName]['Electrode1']
+             Repititions = {}
+             for r in range(1,11):
+                 rep = "R" + str(r)
+                 windowsR = [method(table[rep][x:x+200]) for x in range(0, len(table[rep]), 100)]
+                 Repititions["Repitition{0}".format(r)] = windowsR
+             Movements["Movement{0}".format(m)]= Repititions
+        Electrodes["Electrode{0}".format(e)] = Movements
+    return Electrodes
 
 
+Features ={ "RMS": applyFeature((1)), "MAV": applyFeature(2)}
+pretty(Features, 0)
+# daily = [1,2,3,4,5,6,7,8]
+# print([sum(daily[x:x+4]) for x in range(0, len(daily), 2)])
 
 
-# ## Windows of table Electrode 1
-# RMS = {}
-# for e in range(1,11):
