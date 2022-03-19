@@ -5,19 +5,43 @@ import scipy.io
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0]+1)
 
-##################################################################################
-# EXERCISE 1
-
+#Extracting Data Of Ex 1
 ex1 = scipy.io.loadmat('S1_A1_E1.mat')
 emg = ex1['emg']
 EMGdf = pd.DataFrame.from_dict(emg)
 stimulus = ex1['stimulus']
 
-Exercise1 = {}
-#looping over the 12 movements in exercise 1
-for m in range(1,12):
-    movementIndices = np.where(stimulus == m)[0]
-    repetitions = consecutive(movementIndices)
+#Extracting Data Of Ex 2
+ex2 = scipy.io.loadmat('S1_A1_E2.mat')
+emg2 = ex2['emg']
+EMGdf2 = pd.DataFrame.from_dict(emg2)
+stimulus2 = ex2['stimulus']
+
+#Extracting Data Of Ex 3
+ex3 = scipy.io.loadmat('S1_A1_E3.mat')
+emg3 = ex3['emg']
+EMGdf3 = pd.DataFrame.from_dict(emg3)
+stimulus3 = ex3['stimulus']
+
+
+Movements = {}
+#looping over the 50 movements
+for m in range(1,51):
+
+    #Checking to which exercise does this movement belong to, and retrieving its data
+    if( m<11):
+        movementIndices = np.where(stimulus == m)[0]
+        repetitions = consecutive(movementIndices)
+        EMG = EMGdf
+    elif( m<28):
+        movementIndices = np.where(stimulus2 == (m-10))[0]
+        repetitions = consecutive(movementIndices)
+        EMG = EMGdf2
+    else:
+        movementIndices = np.where(stimulus3 == (m-27))[0]
+        repetitions = consecutive(movementIndices)
+        EMG = EMGdf3
+
 
     Electrodes = {}
     #looping over the 12 electrodes of each movement
@@ -26,73 +50,25 @@ for m in range(1,12):
         for r in range(1,11):
             startIndex= repetitions[r-1][0]
             LastIndex = repetitions[r-1][len(repetitions[r-1])-1]
-            df = EMGdf.iloc[startIndex:LastIndex, e-1]
+            df = EMG.iloc[startIndex:LastIndex, e-1]
             df.reset_index(drop=True, inplace=True)
-            # narray = df.to_numpy(dtype=None, copy=False)
+            narray = df.to_numpy(dtype=None, copy=False)
             temp["R{0}".format(r)] = df
         Electrodes["Electrode{0}".format(e)] = temp
-    Exercise1["Movement{0}".format(m)] = Electrodes
-
-    # print(Exercise1)
-    # #Convert dictionary to dataframe
-    # df = pd.DataFrame.from_dict(stimulus)
+    Movements["Movement{0}".format(m)] = Electrodes
 
 
-##################################################################################
-## EXERCISE 2
-
-ex2 = scipy.io.loadmat('S1_A1_E2.mat')
-emg2 = ex2['emg']
-EMGdf2 = pd.DataFrame.from_dict(emg2)
-stimulus2 = ex2['stimulus']
-
-Exercise2 = {}
-#looping over the 12 movements in exercise 1
-for m in range(1,18):
-    movementIndices = np.where(stimulus2 == m)[0]
-    repetitions = consecutive(movementIndices)
-
-    Electrodes = {}
-    #looping over the 10 electrodes of each movement
-    for e in range(1,11):
-        temp = {}
-        for r in range(1,11):
-            startIndex= repetitions[r-1][0]
-            LastIndex = repetitions[r-1][len(repetitions[r-1])-1]
-            df = EMGdf2.iloc[startIndex:LastIndex, e-1]
-            df.reset_index(drop=True, inplace=True)
-            # narray = df.to_numpy(dtype=None, copy=False)
-            temp["R{0}".format(r)] = df
-        Electrodes["Electrode{0}".format(e)] = temp
-    Exercise2["Movement{0}".format(m)] = Electrodes
+# #Convert dictionary to dataframe
+dff = pd.DataFrame.from_dict(Movements)
+print(dff)
+# print(dff['Movement1'])
+# print(dff.loc['Electrode1'])
 
 
-##################################################################################
-## EXERCISE 3
-
-Exercise3 = {}
-#looping over the 12 movements in exercise 1
-for m in range(1,24):
-    movementIndices = np.where(stimulus2 == m)[0]
-    repetitions = consecutive(movementIndices)
-
-    Electrodes = {}
-    #looping over the 10 electrodes of each movement
-    for e in range(1,11):
-        temp = {}
-        for r in range(1,11):
-            startIndex= repetitions[r-1][0]
-            LastIndex = repetitions[r-1][len(repetitions[r-1])-1]
-            df = EMGdf2.iloc[startIndex:LastIndex, e-1]
-            df.reset_index(drop=True, inplace=True)
-            # narray = df.to_numpy(dtype=None, copy=False)
-            temp["R{0}".format(r)] = df
-        Electrodes["Electrode{0}".format(e)] = temp
-    Exercise3["Movement{0}".format(m)] = Electrodes
-
-    print(Exercise3)
 
 
-## Windows of table Electrode 1
-RMS = {}
-for e in range(1,11):
+
+
+# ## Windows of table Electrode 1
+# RMS = {}
+# for e in range(1,11):
