@@ -94,6 +94,12 @@ def mav(arr):
 
 ## Features
 
+#Window Size = 200ms
+# Overlap = 100 ms
+# Step of 100 ms
+#Since frequency = 100 Hz
+# N= No of data points = 200ms * 100 = 20
+# step size = 100ms * 100 = 10
 def applyFeature(n):
     if (n==1):
         method = rms;
@@ -108,7 +114,8 @@ def applyFeature(n):
              Repititions = {}
              for r in range(1,11):
                  rep = "R" + str(r)
-                 windowsR = [method(table[rep][x:x+200]) for x in range(0, len(table[rep]), 100)]
+                 windowsR = [method(table[rep][x:x+20]) for x in range(0, len(table[rep]), 10)]
+                 # windowsR = pd.Series(arr)
                  Repititions["Repitition{0}".format(r)] = windowsR
              Movements["Movement{0}".format(m)]= Repititions
         Electrodes["Electrode{0}".format(e)] = Movements
@@ -116,7 +123,12 @@ def applyFeature(n):
 
 
 Features ={ "RMS": applyFeature((1)), "MAV": applyFeature(2)}
-pretty(Features, 0)
+# #Convert dictionary to dataframe
+# df = pd.DataFrame.from_dict(Features)
+# print(df)
+# df.to_csv(r'\df.csv', index = False)
+# print(Features['RMS']['Electrode1']['Movement1'])
+# pretty(Features, 0)
 # daily = [1,2,3,4,5,6,7,8]
 # print([sum(daily[x:x+4]) for x in range(0, len(daily), 2)])
 
