@@ -69,14 +69,12 @@ for m in range(1, 51):
         Electrodes["Electrode{0}".format(e)] = temp
     Movements["Movement{0}".format(m)] = Electrodes
 
-# #Convert dictionary to dataframe
+#Convert dictionary to dataframe
 dff = pd.DataFrame.from_dict(Movements)
-
-
 # print(dff)
 # print(dff.loc['Electrode1'])
 
-
+## Features
 def rms(arr):
     n = len(arr)
     square = 0
@@ -100,9 +98,14 @@ def var(arr):
 
     result = (square / (float)(n))
     return result
+def wl(arr):
+    n = len(arr)
+    sum=0
+    for i in range(1, n):
+        sum += abs(arr[i]-arr[i-1])
+    return sum
 
-
-## Features
+#Extracting Features
 electrodes = {}
 for e in range(1, 11):
     movements = {}
