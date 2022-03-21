@@ -116,19 +116,25 @@ for e in range(1, 11):
         RMSrep = []
         MAVrep = []
         VARrep = []
+        WLrep =[]
         for r in range(1, 11):
             rep = "R" + str(r)
             rmsArr = [rms(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
             mavArr = [mav(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
             varArr = [var(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
+            wlArr = [wl(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
         #    windowsR = pd.Series(arr)
 
             RMSrep.append(rmsArr)
             MAVrep.append(mavArr)
             VARrep.append(varArr)
+            WLrep.append(wlArr)
+
         Features['RMS'] = RMSrep
         Features['MAV'] = MAVrep
         Features['VAR'] = VARrep
+        Features['WL'] = WLrep
+
         movements["Movement{0}".format(m)] = Features
     electrodes["Electrode{0}".format(e)] = movements
 
