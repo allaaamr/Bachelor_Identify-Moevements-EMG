@@ -104,7 +104,12 @@ def wl(arr):
     for i in range(1, n):
         sum += abs(arr[i]-arr[i-1])
     return sum
-
+def iav(arr):
+    n = len(arr)
+    absSum = 0
+    for i in range(0, n):
+        absSum += abs(arr[i])
+    return absSum
 #Extracting Features
 electrodes = {}
 for e in range(1, 11):
@@ -117,23 +122,27 @@ for e in range(1, 11):
         MAVrep = []
         VARrep = []
         WLrep =[]
+        IAVrep = []
         for r in range(1, 11):
             rep = "R" + str(r)
             rmsArr = [rms(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
             mavArr = [mav(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
             varArr = [var(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
             wlArr = [wl(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
+            iavArr = [iav(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
         #    windowsR = pd.Series(arr)
 
             RMSrep.append(rmsArr)
             MAVrep.append(mavArr)
             VARrep.append(varArr)
             WLrep.append(wlArr)
+            IAVrep.append(iavArr)
 
         Features['RMS'] = RMSrep
         Features['MAV'] = MAVrep
         Features['VAR'] = VARrep
         Features['WL'] = WLrep
+        Features['IAV'] = IAVrep
 
         movements["Movement{0}".format(m)] = Features
     electrodes["Electrode{0}".format(e)] = movements
@@ -145,8 +154,8 @@ for e in range(1, 11):
 
 df = pd.DataFrame.from_dict(electrodes)
 #dfRMS.to_csv(r'\df.csv', index = False)
-pretty(electrodes)
-#pretty(df['Electrode4'])
+#pretty(electrodes)
+pretty(df['Electrode4']['Movement9'])
 # df = pd.DataFrame.from_dict(Features)
 # df = pd.DataFrame.from_dict(Features)
 # print(df['RMS'])
