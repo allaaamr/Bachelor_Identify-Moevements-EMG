@@ -17,6 +17,8 @@ def pretty(d, indent=0):
             print('-----------------------')
         else:
             print('\t' * (indent + 2) + str(value))
+            print(" ")
+
 
 
 # Extracting Data Of Ex 1
@@ -125,18 +127,18 @@ for e in range(1, 11):
         IAVrep = []
         for r in range(1, 11):
             rep = "R" + str(r)
-            rmsArr = [rms(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
-            mavArr = [mav(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
-            varArr = [var(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
-            wlArr = [wl(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
-            iavArr = [iav(table[rep][x:x + 600]) for x in range(0, len(table[rep]), 400)]
+            rmsArr = [rms(table[rep][x:x + 50]) for x in range(0, len(table[rep]), 48)]
+            mavArr = [mav(table[rep][x:x + 50]) for x in range(0, len(table[rep]), 48)]
+            varArr = [var(table[rep][x:x + 50]) for x in range(0, len(table[rep]), 48)]
+            wlArr = [wl(table[rep][x:x + 50]) for x in range(0, len(table[rep]), 48)]
+            iavArr = [iav(table[rep][x:x + 50]) for x in range(0, len(table[rep]), 48)]
         #    windowsR = pd.Series(arr)
 
-            RMSrep.append(rmsArr)
-            MAVrep.append(mavArr)
-            VARrep.append(varArr)
-            WLrep.append(wlArr)
-            IAVrep.append(iavArr)
+            RMSrep = np.concatenate((RMSrep,rmsArr ), axis=None)
+            MAVrep = np.concatenate((MAVrep,mavArr ), axis=None)
+            VARrep = np.concatenate((VARrep,varArr ), axis=None)
+            WLrep = np.concatenate((WLrep,wlArr ), axis=None)
+            IAVrep = np.concatenate((IAVrep,iavArr ), axis=None)
 
         Features['RMS'] = RMSrep
         Features['MAV'] = MAVrep
