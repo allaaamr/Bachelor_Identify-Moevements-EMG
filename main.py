@@ -144,38 +144,45 @@ def iav(arr):
         absSum += abs(arr[i])
     return absSum
 
+# 1 repetition = 11 windows
+# 6 repetitions = 66 windows
+# Each exercise has 66 rows in the dataset
 df = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
 df.astype('object')
-for r in range(1, 11):
+for r in range(1, 7):
     rep = "R" + str(r)
-    df.at[r-1, 'RMS'] = [rms(M1Ex1[rep][x:x + 50]) for x in range(0, len( M1Ex1[rep]), 48)]
-    df.at[r-1, 'MAV'] = [mav(M1Ex1[rep][x:x + 50]) for x in range(0, len(M1Ex1[rep]), 48)]
-    df.at[r-1, 'VAR'] = [var(M1Ex1[rep][x:x + 50]) for x in range(0, len(M1Ex1[rep]), 48)]
-    df.at[r-1, 'WL'] = [wl(M1Ex1[rep][x:x + 50]) for x in range(0, len(M1Ex1[rep]), 48)]
-    df.at[r-1, 'IAV'] = [iav(M1Ex1[rep][x:x + 50]) for x in range(0, len(M1Ex1[rep]), 48)]
-    df.at[r-1, 'Movement'] = 0
-
-for r in range(1, 11):
-    rep = "R" + str(r)
-    df.at[r+9, 'RMS'] = [rms(M1Ex2[rep][x:x + 50]) for x in range(0, len(M1Ex2[rep]), 48)]
-    df.at[r+9, 'MAV'] = [mav(M1Ex2[rep][x:x + 50]) for x in range(0, len(M1Ex2[rep]), 48)]
-    df.at[r+9, 'VAR'] = [var(M1Ex2[rep][x:x + 50]) for x in range(0, len(M1Ex2[rep]), 48)]
-    df.at[r+9, 'WL'] = [wl(M1Ex2[rep][x:x + 50]) for x in range(0, len(M1Ex2[rep]), 48)]
-    df.at[r+9, 'IAV'] = [iav(M1Ex2[rep][x:x + 50]) for x in range(0, len(M1Ex2[rep]), 48)]
-    df.at[r+9, 'Movement'] = 1
-
+    i= r*20
+    for x in range(0, len( M1Ex1[rep]), 48):
+        df.at[i, 'RMS'] = rms(M1Ex1[rep][x:x + 50])
+        df.at[i, 'RMS'] = rms(M1Ex1[rep][x:x + 50])
+        df.at[i, 'MAV'] = mav(M1Ex1[rep][x:x + 50])
+        df.at[i, 'VAR'] = var(M1Ex1[rep][x:x + 50])
+        df.at[i, 'WL'] = wl(M1Ex1[rep][x:x + 50])
+        df.at[i, 'IAV'] = iav(M1Ex1[rep][x:x + 50])
+        df.at[i, 'Movement'] = 0
+        i+=1
+    for x in range(0, len( M1Ex2[rep]), 48):
+        df.at[i, 'RMS'] = rms(M1Ex2[rep][x:x + 50])
+        df.at[i, 'RMS'] = rms(M1Ex2[rep][x:x + 50])
+        df.at[i, 'MAV'] = mav(M1Ex2[rep][x:x + 50])
+        df.at[i, 'VAR'] = var(M1Ex2[rep][x:x + 50])
+        df.at[i, 'WL'] = wl(M1Ex2[rep][x:x + 50])
+        df.at[i, 'IAV'] = iav(M1Ex2[rep][x:x + 50])
+        df.at[i, 'Movement'] = 1
+        i+=1
+        print(i)
 
 print(df.shape)
+print(df)
+
 features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV'}
-data = {k: df[k] for k in features}
-print(data)
+data = pd.DataFrame.from_dict({k: df[k] for k in features})
 target = np.array(df['Movement'].values.tolist())
-print(target)
 X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2,random_state=0)
 clf = svm.SVC(kernel='linear')
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
-
+print(y_pred)
 
 # df = pd.DataFrame.from_dict(electrodes)
 # E1M1 = pd.DataFrame.from_dict(df['Electrode1']['Movement1'])
