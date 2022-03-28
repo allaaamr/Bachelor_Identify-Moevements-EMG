@@ -147,38 +147,45 @@ def iav(arr):
 # 1 repetition = 11 windows
 # 6 repetitions = 66 windows
 # Each exercise has 66 rows in the dataset
-df = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
-df.astype('object')
+
+train = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
+test = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
+train.astype('object')
+test.astype('object')
+
 for r in range(1, 7):
     rep = "R" + str(r)
-    i= r*20
-    for x in range(0, len( M1Ex1[rep]), 48):
-        df.at[i, 'RMS'] = rms(M1Ex1[rep][x:x + 50])
-        df.at[i, 'RMS'] = rms(M1Ex1[rep][x:x + 50])
-        df.at[i, 'MAV'] = mav(M1Ex1[rep][x:x + 50])
-        df.at[i, 'VAR'] = var(M1Ex1[rep][x:x + 50])
-        df.at[i, 'WL'] = wl(M1Ex1[rep][x:x + 50])
-        df.at[i, 'IAV'] = iav(M1Ex1[rep][x:x + 50])
-        df.at[i, 'Movement'] = 0
-        i+=1
-    for x in range(0, len( M1Ex2[rep]), 48):
-        df.at[i, 'RMS'] = rms(M1Ex2[rep][x:x + 50])
-        df.at[i, 'RMS'] = rms(M1Ex2[rep][x:x + 50])
-        df.at[i, 'MAV'] = mav(M1Ex2[rep][x:x + 50])
-        df.at[i, 'VAR'] = var(M1Ex2[rep][x:x + 50])
-        df.at[i, 'WL'] = wl(M1Ex2[rep][x:x + 50])
-        df.at[i, 'IAV'] = iav(M1Ex2[rep][x:x + 50])
-        df.at[i, 'Movement'] = 1
-        i+=1
-        print(i)
+    if(r in [1, 3, 4, 6]):
+        df = train
+    else:
+        df = test
 
-print(df.shape)
-print(df)
+    for x in range(0, len( M1Ex1[rep]), 48):
+        print( df.shape[0])
+        rms_value = rms(M1Ex1[rep][x:x + 50])
+        mav_value = mav(M1Ex1[rep][x:x + 50])
+        var_value = var(M1Ex1[rep][x:x + 50])
+        wl_value = wl(M1Ex1[rep][x:x + 50])
+        iav_value= iav(M1Ex1[rep][x:x + 50])
+        movement = 0
+        df.loc[df.shape[0]] = [rms_value, mav_value, var_value, wl_value, iav_value, movement]
+
+    for x in range(0, len( M1Ex2[rep]), 48):
+        rms_value = rms(M1Ex2[rep][x:x + 50])
+        mav_value = mav(M1Ex2[rep][x:x + 50])
+        var_value = var(M1Ex2[rep][x:x + 50])
+        wl_value = wl(M1Ex2[rep][x:x + 50])
+        iav_value= iav(M1Ex2[rep][x:x + 50])
+        movement = 1
+        df.loc[df.shape[0]] = [rms_value, mav_value, var_value, wl_value, iav_value, movement]
+
 
 features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV'}
-data = pd.DataFrame.from_dict({k: df[k] for k in features})
-target = np.array(df['Movement'].values.tolist())
-X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2,random_state=0)
+X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
+X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
+y_train = np.array(train['Movement'].values.tolist())
+y_test = np.array(test['Movement'].values.tolist())
+# X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2,random_state=0)
 clf = svm.SVC(kernel='linear')
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
