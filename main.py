@@ -7,6 +7,8 @@ from scipy import pi
 from scipy.fftpack import fft
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+from sklearn import utils
+from sklearn import preprocessing
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
@@ -150,8 +152,7 @@ def iav(arr):
 
 train = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
 test = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
-train.astype('object')
-test.astype('object')
+
 
 for r in range(1, 7):
     rep = "R" + str(r)
@@ -161,7 +162,6 @@ for r in range(1, 7):
         df = test
 
     for x in range(0, len( M1Ex1[rep]), 48):
-        print( df.shape[0])
         rms_value = rms(M1Ex1[rep][x:x + 50])
         mav_value = mav(M1Ex1[rep][x:x + 50])
         var_value = var(M1Ex1[rep][x:x + 50])
@@ -179,14 +179,14 @@ for r in range(1, 7):
         movement = 1
         df.loc[df.shape[0]] = [rms_value, mav_value, var_value, wl_value, iav_value, movement]
 
-
+lab_enc = preprocessing.LabelEncoder()
 features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV'}
 X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
 X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
-y_train = np.array(train['Movement'].values.tolist())
-y_test = np.array(test['Movement'].values.tolist())
+y_train = lab_enc.fit_transform(train['Movement'])
+y_test = lab_enc.fit_transform(test['Movement'])
 # X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2,random_state=0)
-clf = svm.SVC(kernel='linear')
+clf = svm.SVC()
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 print(y_pred)
