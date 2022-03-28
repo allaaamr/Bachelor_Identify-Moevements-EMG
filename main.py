@@ -9,6 +9,8 @@ from sklearn import svm
 from sklearn.model_selection import train_test_split
 from sklearn import utils
 from sklearn import preprocessing
+from sklearn.metrics import accuracy_score
+from collections import Counter
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
@@ -23,6 +25,10 @@ def pretty(d, indent=0):
         else:
             print('\t' * (indent + 2) + str(value))
             print(" ")
+
+def most_frequent(List):
+    occurence_count = Counter(List)
+    return occurence_count.most_common(1)[0][0]
 
 # Extracting Data Of Ex 1
 ex1 = scipy.io.loadmat('S1_A1_E1.mat')
@@ -168,7 +174,7 @@ for r in range(1, 7):
         wl_value = wl(M1Ex1[rep][x:x + 50])
         iav_value= iav(M1Ex1[rep][x:x + 50])
         movement = 0
-        df.loc[df.shape[0]] = [rms_value, mav_value, var_value, wl_value, iav_value, movement]
+        df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value,'Movement':movement}
 
     for x in range(0, len( M1Ex2[rep]), 48):
         rms_value = rms(M1Ex2[rep][x:x + 50])
@@ -177,7 +183,7 @@ for r in range(1, 7):
         wl_value = wl(M1Ex2[rep][x:x + 50])
         iav_value= iav(M1Ex2[rep][x:x + 50])
         movement = 1
-        df.loc[df.shape[0]] = [rms_value, mav_value, var_value, wl_value, iav_value, movement]
+        df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value,'Movement':movement}
 
 lab_enc = preprocessing.LabelEncoder()
 features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV'}
@@ -185,11 +191,22 @@ X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
 X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
 y_train = lab_enc.fit_transform(train['Movement'])
 y_test = lab_enc.fit_transform(test['Movement'])
+print("Y_test: \n", y_test)
 # X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2,random_state=0)
-clf = svm.SVC()
+clf = svm.SVC(kernel="linear")
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
-print(y_pred)
+
+print("Y_predicted: \n", y_pred)
+print("Accuracy:  " ,accuracy_score(y_test, y_pred))
+print(" ")
+y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
+y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
+print("Y_test_new: \n",y_test_new)
+print("Y_predicted_new: \n", y_predicted_new)
+print("Accuracy New:  ",accuracy_score(y_test_new, y_predicted_new))
+
+
 
 # df = pd.DataFrame.from_dict(electrodes)
 # E1M1 = pd.DataFrame.from_dict(df['Electrode1']['Movement1'])
