@@ -31,55 +31,92 @@ def most_frequent(List):
     occurence_count = Counter(List)
     return occurence_count.most_common(1)[0][0]
 
-# Extracting Data Of Ex 1
-ex1 = scipy.io.loadmat('S1_A1_E1.mat')
-emg = ex1['emg']
-EMGdf = pd.DataFrame.from_dict(emg)
-stimulus = ex1['stimulus']
+def rms(arr):
+    n = len(arr)
+    square = 0
+    for i in range(0, n):
+        square += (arr[i] ** 2)
+    mean = (square / (float)(n))
+    root = math.sqrt(mean)
+    return root
+def mav(arr):
+    n = len(arr)
+    absSum = 0
+    for i in range(0, n):
+        absSum += abs(arr[i])
+    mav = (absSum / (float)(n))
+    return mav
+def var(arr):
+    n = len(arr)
+    square = 0
+    for i in range(0, n):
+        square += (arr[i] ** 2)
 
-# Extracting Data Of Ex 2
-ex2 = scipy.io.loadmat('S1_A1_E2.mat')
-emg2 = ex2['emg']
-EMGdf2 = pd.DataFrame.from_dict(emg2)
-stimulus2 = ex2['stimulus']
+    result = (square / (float)(n))
+    return result
+def wl(arr):
+    n = len(arr)
+    sum=0
+    for i in range(1, n):
+        sum += abs(arr[i]-arr[i-1])
+    return sum
+def iav(arr):
+    n = len(arr)
+    absSum = 0
+    for i in range(0, n):
+        absSum += abs(arr[i])
+    return absSum
 
-# Extracting Data Of Ex 3
-ex3 = scipy.io.loadmat('S1_A1_E3.mat')
-emg3 = ex3['emg']
-EMGdf3 = pd.DataFrame.from_dict(emg3)
-stimulus3 = ex3['stimulus']
 
-Movements = {}
-for m in range(1, 51):
-    if (m < 11):
-        movementIndices = np.where(stimulus == m)[0]
-        repetitions = consecutive(movementIndices)
-        EMG = EMGdf
-    elif (m < 28):
-        movementIndices = np.where(stimulus2 == (m - 10))[0]
-        repetitions = consecutive(movementIndices)
-        EMG = EMGdf2
-    else:
-        movementIndices = np.where(stimulus3 == (m - 27))[0]
-        repetitions = consecutive(movementIndices)
-        EMG = EMGdf3
+def extractSubject (name):
+    ex1Path = 'DB1/' + name + '/' + name + '_A1_E1.mat'
+    print(ex1Path)
+    ex1 = scipy.io.loadmat(ex1Path)
+    emg = ex1['emg']
+    EMGdf = pd.DataFrame.from_dict(emg)
+    stimulus = ex1['stimulus']
 
-    Electrodes = {}
-    # looping over the 12 electrodes of each movement
-    for e in range(1, 11):
-        temp = {}
-        for r in range(1, 11):
-            startIndex = repetitions[r - 1][0]
-            LastIndex = repetitions[r - 1][len(repetitions[r - 1]) - 1]
-            df = EMG.iloc[startIndex:LastIndex, e - 1]
-            df.reset_index(drop=True, inplace=True)
-            narray = df.to_numpy(dtype=None, copy=False)
-            temp["R{0}".format(r)] = narray
-        Electrodes["Electrode{0}".format(e)] = temp
-    Movements["Movement{0}".format(m)] = Electrodes
+    ex2Path = 'DB1/' + name + '/' + name + '_A1_E2.mat'
+    ex2 = scipy.io.loadmat(ex2Path)
+    emg2 = ex2['emg']
+    EMGdf2 = pd.DataFrame.from_dict(emg2)
+    stimulus2 = ex2['stimulus']
 
-dff = pd.DataFrame.from_dict(Movements)
+    ex3Path = 'DB1/' + name + '/' + name + '_A1_E3.mat'
+    ex3 = scipy.io.loadmat(ex3Path)
+    emg3 = ex3['emg']
+    EMGdf3 = pd.DataFrame.from_dict(emg3)
+    stimulus3 = ex3['stimulus']
 
+    Movements = {}
+    for m in range(1, 51):
+        if (m < 11):
+            movementIndices = np.where(stimulus == m)[0]
+            repetitions = consecutive(movementIndices)
+            EMG = EMGdf
+        elif (m < 28):
+            movementIndices = np.where(stimulus2 == (m - 10))[0]
+            repetitions = consecutive(movementIndices)
+            EMG = EMGdf2
+        else:
+            movementIndices = np.where(stimulus3 == (m - 27))[0]
+            repetitions = consecutive(movementIndices)
+            EMG = EMGdf3
+    
+        Electrodes = {}
+        # looping over the 12 electrodes of each movement
+        for e in range(1, 11):
+            temp = {}
+            for r in range(1, 11):
+                startIndex = repetitions[r - 1][0]
+                LastIndex = repetitions[r - 1][len(repetitions[r - 1]) - 1]
+                df = EMG.iloc[startIndex:LastIndex, e - 1]
+                df.reset_index(drop=True, inplace=True)
+                narray = df.to_numpy(dtype=None, copy=False)
+                temp["R{0}".format(r)] = narray
+            Electrodes["Electrode{0}".format(e)] = temp
+        Movements["Movement{0}".format(m)] = Electrodes
+    return Movements
 
 #
 #
@@ -117,52 +154,7 @@ dff = pd.DataFrame.from_dict(Movements)
 
 
 ## Features
-def rms(arr):
-    n = len(arr)
-    square = 0
-    for i in range(0, n):
-        square += (arr[i] ** 2)
-    mean = (square / (float)(n))
-    root = math.sqrt(mean)
-    return root
-def mav(arr):
-    n = len(arr)
-    absSum = 0
-    for i in range(0, n):
-        absSum += abs(arr[i])
-    mav = (absSum / (float)(n))
-    return mav
-def var(arr):
-    n = len(arr)
-    square = 0
-    for i in range(0, n):
-        square += (arr[i] ** 2)
 
-    result = (square / (float)(n))
-    return result
-def wl(arr):
-    n = len(arr)
-    sum=0
-    for i in range(1, n):
-        sum += abs(arr[i]-arr[i-1])
-    return sum
-def iav(arr):
-    n = len(arr)
-    absSum = 0
-    for i in range(0, n):
-        absSum += abs(arr[i])
-    return absSum
-
-M1E1 = dff['Movement1']['Electrode1']
-M11E1 = dff['Movement11']['Electrode1']
-M28E1 = dff['Movement28']['Electrode1']
-M1E2 = dff['Movement1']['Electrode2']
-M11E2 = dff['Movement11']['Electrode2']
-M28E2 = dff['Movement28']['Electrode2']
-
-
-
-#
 # train = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
 # test = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
 #
@@ -193,106 +185,124 @@ M28E2 = dff['Movement28']['Electrode2']
 #
 #
 
+subjects_accuracy = pd.DataFrame(columns= {'Accuracy', 'Accuracy_Modified'})
 
-train = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2', 'Movement'})
-test = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2', 'Movement'})
-for r in range(1, 7):
-    rep = "R" + str(r)
-    if(r in [1, 3, 4, 6]):
-        df = train
-    else:
-        df = test
 
-    for x in range(0, len( M1E1[rep]), 48):
-        rms_value = rms(M1E1[rep][x:x + 50])
-        mav_value = mav(M1E1[rep][x:x + 50])
-        var_value = var(M1E1[rep][x:x + 50])
-        wl_value = wl(M1E1[rep][x:x + 50])
-        iav_value= iav(M1E1[rep][x:x + 50])
-        rms2_value = rms(M1E2[rep][x:x + 50])
-        mav2_value = mav(M1E2[rep][x:x + 50])
-        var2_value = var(M1E2[rep][x:x + 50])
-        wl2_value = wl(M1E2[rep][x:x + 50])
-        iav2_value= iav(M1E2[rep][x:x + 50])
-        movement = 0
-        df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS2':rms2_value, 'MAV2': mav2_value, 'VAR2':var2_value, 'WL2':wl2_value, "IAV2":iav2_value,'Movement':movement}
+for i in range (1,11):
+    subject = "S" +str(i)
+    dff = pd.DataFrame.from_dict(extractSubject(subject))
+    M1E1 = dff['Movement1']['Electrode1']
+    M11E1 = dff['Movement11']['Electrode1']
+    M1E2 = dff['Movement1']['Electrode2']
+    M11E2 = dff['Movement11']['Electrode2']
+    train = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2', 'Movement'})
+    test = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2', 'Movement'})
+    for r in range(1, 7):
+        rep = "R" + str(r)
+        if(r in [1, 3, 4, 6]):
+            df = train
+        else:
+            df = test
 
-    for x in range(0, len( M11E1[rep]), 48):
-        rms_value = rms(M11E1[rep][x:x + 50])
-        mav_value = mav(M11E1[rep][x:x + 50])
-        var_value = var(M11E1[rep][x:x + 50])
-        wl_value = wl(M11E1[rep][x:x + 50])
-        iav_value= iav(M11E1[rep][x:x + 50])
-        rms2_value = rms(M11E2[rep][x:x + 50])
-        mav2_value = mav(M11E2[rep][x:x + 50])
-        var2_value = var(M11E2[rep][x:x + 50])
-        wl2_value = wl(M11E2[rep][x:x + 50])
-        iav2_value= iav(M11E2[rep][x:x + 50])
-        movement = 1
-        df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS2':rms2_value, 'MAV2': mav2_value, 'VAR2':var2_value, 'WL2':wl2_value, "IAV2":iav2_value,'Movement':movement}
+        for x in range(0, len( M1E1[rep]), 48):
+            rms_value = rms(M1E1[rep][x:x + 50])
+            mav_value = mav(M1E1[rep][x:x + 50])
+            var_value = var(M1E1[rep][x:x + 50])
+            wl_value = wl(M1E1[rep][x:x + 50])
+            iav_value= iav(M1E1[rep][x:x + 50])
+            rms2_value = rms(M1E2[rep][x:x + 50])
+            mav2_value = mav(M1E2[rep][x:x + 50])
+            var2_value = var(M1E2[rep][x:x + 50])
+            wl2_value = wl(M1E2[rep][x:x + 50])
+            iav2_value= iav(M1E2[rep][x:x + 50])
+            movement = 0
+            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS2':rms2_value, 'MAV2': mav2_value, 'VAR2':var2_value, 'WL2':wl2_value, "IAV2":iav2_value,'Movement':movement}
 
-    for x in range(0, len( M28E1[rep]), 48):
-        rms_value = rms(M28E1[rep][x:x + 50])
-        mav_value = mav(M28E1[rep][x:x + 50])
-        var_value = var(M28E1[rep][x:x + 50])
-        wl_value = wl(M28E1[rep][x:x + 50])
-        iav_value= iav(M28E1[rep][x:x + 50])
-        rms2_value = rms(M28E2[rep][x:x + 50])
-        mav2_value = mav(M28E2[rep][x:x + 50])
-        var2_value = var(M28E2[rep][x:x + 50])
-        wl2_value = wl(M28E2[rep][x:x + 50])
-        iav2_value= iav(M28E2[rep][x:x + 50])
-        movement = 2
-        df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS2':rms2_value, 'MAV2': mav2_value, 'VAR2':var2_value, 'WL2':wl2_value, "IAV2":iav2_value,'Movement':movement}
+        for x in range(0, len( M11E1[rep]), 48):
+            rms_value = rms(M11E1[rep][x:x + 50])
+            mav_value = mav(M11E1[rep][x:x + 50])
+            var_value = var(M11E1[rep][x:x + 50])
+            wl_value = wl(M11E1[rep][x:x + 50])
+            iav_value= iav(M11E1[rep][x:x + 50])
+            rms2_value = rms(M11E2[rep][x:x + 50])
+            mav2_value = mav(M11E2[rep][x:x + 50])
+            var2_value = var(M11E2[rep][x:x + 50])
+            wl2_value = wl(M11E2[rep][x:x + 50])
+            iav2_value= iav(M11E2[rep][x:x + 50])
+            movement = 1
+            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS2':rms2_value, 'MAV2': mav2_value, 'VAR2':var2_value, 'WL2':wl2_value, "IAV2":iav2_value,'Movement':movement}
 
-# fig, (ax1, ax2, ax3) = plt.subplots(1,3)
-# fig.suptitle('Electrode 1')
-# ax1.set_title('Movement 1')
-# ax1.plot(train.where(train['Movement'] == 0))
+        # for x in range(0, len( M28E1[rep]), 48):
+        #     rms_value = rms(M28E1[rep][x:x + 50])
+        #     mav_value = mav(M28E1[rep][x:x + 50])
+        #     var_value = var(M28E1[rep][x:x + 50])
+        #     wl_value = wl(M28E1[rep][x:x + 50])
+        #     iav_value= iav(M28E1[rep][x:x + 50])
+        #     rms2_value = rms(M28E2[rep][x:x + 50])
+        #     mav2_value = mav(M28E2[rep][x:x + 50])
+        #     var2_value = var(M28E2[rep][x:x + 50])
+        #     wl2_value = wl(M28E2[rep][x:x + 50])
+        #     iav2_value= iav(M28E2[rep][x:x + 50])
+        #     movement = 2
+        #     df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS2':rms2_value, 'MAV2': mav2_value, 'VAR2':var2_value, 'WL2':wl2_value, "IAV2":iav2_value,'Movement':movement}
+    lab_enc = preprocessing.LabelEncoder()
+    features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2'}
+    X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
+    X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
+    y_train = lab_enc.fit_transform(train['Movement'])
+    y_test = lab_enc.fit_transform(test['Movement'])
+
+    clf = svm.SVC(kernel="linear")
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    # print("Accuracy:  " ,accuracy)
+    y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
+    y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
+    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+    # print("Accuracy Modified:  ", accuracy_modified)
+
+    subjects_accuracy.loc[subjects_accuracy.shape[0]] = [accuracy, accuracy_modified]
+
+print(subjects_accuracy)
+
+# fig, axs = plt.subplots(1,2)
 #
-# ax2.set_title('Movement 11')
-# ax2.plot(train.where(train['Movement'] == 1))
-#
-# ax3.set_title('Movement 28')
-# ax3.plot(train.where(train['Movement'] == 2))
+# axs.hist( subjects_accuracy['Accuracy'], bins = 10)
+# plt.grid(axis='x', alpha=0.75)
+# fig, (ax1, ax2) = plt.subplots(1,2)
+# ax1.set_xticks([1,2,3,4,5,6,7,8,9,10])
+# ax1.set_xlabel('Subjects')
+# ax1.set_title('Window Accuracy')
+# dout= subjects_accuracy['Accuracy']
+# ax1.hist(dout)
+# ax1.set_title('Subjects')
+# ax2.set_title('Movement Accuracy')
+# ax2.hist(subjects_accuracy['Accuracy_Modified'], bins=10)
+# ax2.set_xticks([1,2,3,4,5,6,7,8,9,10])
+# ax2.set_xlabel('Subjects')
 #
 # plt.show()
+d = subjects_accuracy['Accuracy'].to_dict()
+print(d)
+dic = {
+    0 : 0.659091 ,
+    1 : 0.909091 ,
+    2 : 0.750000 ,
+    3 : 0.931818  ,
+    4 : 0.840909 ,
+    5 : 0.772727 ,
+    6 : 0.909091,
+    7 : 0.704545   ,
+    8 : 1.000000   ,
+    9 : 0.727273,
+}
+fig, axs = plt.subplots(1,2)
+plt.bar(d.keys(), d.values(), 2.0, color='b')
+axs.set_xlabel('Subjects')
+axs.set_title('Window Accuracy')
+plt.show()
 
-
-lab_enc = preprocessing.LabelEncoder()
-features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2'}
-X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
-X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
-# X_train = X_train.loc[:, ['RMS', 'MAV', 'VAR', 'WL', 'IAV']]
-# X_test = X_test.loc[:, ['RMS', 'MAV', 'VAR', 'WL', 'IAV']]
-
-# scaler = MaxAbsScaler()
-# scaler.fit(X_train)
-# scaled = scaler.transform(X_train)
-# scaled_X_train = pd.DataFrame(scaled, columns=X_train.columns)
-#
-# scaler.fit(X_test)
-# scaled2 = scaler.transform(X_test)
-# scaled_X_test = pd.DataFrame(scaled2, columns=X_train.columns)
-
-
-y_train = lab_enc.fit_transform(train['Movement'])
-y_test = lab_enc.fit_transform(test['Movement'])
-
-print(X_train)
-print("Y_test: \n", y_test)
-clf = svm.SVC(kernel="linear")
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-
-print("Y_predicted: \n", y_pred)
-print("Accuracy:  " ,accuracy_score(y_test, y_pred))
-print(" ")
-y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
-print("Y_test_new: \n",y_test_new)
-print("Y_predicted_new: \n", y_predicted_new)
-print("Accuracy New:  ",accuracy_score(y_test_new, y_predicted_new))
 
 
 #
