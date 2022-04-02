@@ -154,7 +154,7 @@ for i in range (1,11):
         y_train = lab_enc.fit_transform(train['Movement'])
         y_test = lab_enc.fit_transform(test['Movement'])
 
-        clf = svm.SVC(kernel="poly")
+        clf = svm.SVC(kernel="rbf")
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
@@ -203,33 +203,33 @@ for d in Subjects_Accuracies.values():
     electrode10_mod.append(d['Electrode10']['Accuracy_Modified'])
 
 
-subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
-
-x = np.arange(len(subjects))  # the label locations
-width = 0.08  # the width of the bars
-
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - 9*width/2, electrode1_acc, width, label='Electrode 1')
-rects2 = ax.bar(x - 7*width/2, electrode2_acc, width, label='Electrode 2')
-rects3 = ax.bar(x - 5*width/2, electrode3_acc, width, label='Electrode 3')
-rects4 = ax.bar(x - 3*width/2, electrode4_acc, width, label='Electrode 4')
-rects5 = ax.bar(x - width/2, electrode5_acc, width, label='Electrode 5')
-rects6 = ax.bar(x + width/2, electrode6_acc, width, label='Electrode 6')
-rects7 = ax.bar(x + 3*width/2, electrode7_acc, width, label='Electrode 7')
-rects8 = ax.bar(x + 5*width/2, electrode8_acc, width, label='Electrode 8')
-rects9 = ax.bar(x + 7*width/2, electrode9_acc, width, label='Electrode 9')
-rects10 = ax.bar(x + 9*width/2, electrode10_acc, width, label='Electrode 10')
-
-ax.set_ylabel('Accuracy')
-ax.set_title('Window Accuracy')
-ax.set_xticks(x, subjects)
-ax.legend()
-ax.bar_label(rects1, padding=3)
-ax.bar_label(rects2, padding=3)
-ax.bar_label(rects3, padding=3)
-ax.bar_label(rects4, padding=3)
-fig.tight_layout()
-plt.show()
+# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+#
+# x = np.arange(len(subjects))  # the label locations
+# width = 0.08  # the width of the bars
+#
+# fig, ax = plt.subplots()
+# rects1 = ax.bar(x - 9*width/2, electrode1_acc, width, label='Electrode 1')
+# rects2 = ax.bar(x - 7*width/2, electrode2_acc, width, label='Electrode 2')
+# rects3 = ax.bar(x - 5*width/2, electrode3_acc, width, label='Electrode 3')
+# rects4 = ax.bar(x - 3*width/2, electrode4_acc, width, label='Electrode 4')
+# rects5 = ax.bar(x - width/2, electrode5_acc, width, label='Electrode 5')
+# rects6 = ax.bar(x + width/2, electrode6_acc, width, label='Electrode 6')
+# rects7 = ax.bar(x + 3*width/2, electrode7_acc, width, label='Electrode 7')
+# rects8 = ax.bar(x + 5*width/2, electrode8_acc, width, label='Electrode 8')
+# rects9 = ax.bar(x + 7*width/2, electrode9_acc, width, label='Electrode 9')
+# rects10 = ax.bar(x + 9*width/2, electrode10_acc, width, label='Electrode 10')
+#
+# ax.set_ylabel('Accuracy')
+# ax.set_title('Window Accuracy')
+# ax.set_xticks(x, subjects)
+# ax.legend()
+# ax.bar_label(rects1, padding=3)
+# ax.bar_label(rects2, padding=3)
+# ax.bar_label(rects3, padding=3)
+# ax.bar_label(rects4, padding=3)
+# fig.tight_layout()
+# plt.show()
 
 
 subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
