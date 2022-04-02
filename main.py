@@ -3,15 +3,10 @@ import numpy as np
 import scipy.io
 import math
 import matplotlib.pyplot as plt
-from scipy import pi
-from scipy.fftpack import fft
 from sklearn import svm
-from sklearn.model_selection import train_test_split
-from sklearn import utils
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 from collections import Counter
-from sklearn.preprocessing import MaxAbsScaler
 
 
 def consecutive(data, stepsize=1):
@@ -29,6 +24,7 @@ def pretty(d, indent=0):
 def most_frequent(List):
     occurence_count = Counter(List)
     return occurence_count.most_common(1)[0][0]
+
 def rms(arr):
     n = len(arr)
     square = 0
@@ -64,6 +60,7 @@ def iav(arr):
     for i in range(0, n):
         absSum += abs(arr[i])
     return absSum
+
 def extractSubject (name):
     ex1Path = 'DB1/' + name + '/' + name + '_A1_E1.mat'
     print(ex1Path)
@@ -100,7 +97,6 @@ def extractSubject (name):
             EMG = EMGdf3
     
         Electrodes = {}
-        # looping over the 12 electrodes of each movement
         for e in range(1, 11):
             temp = {}
             for r in range(1, 11):
@@ -114,42 +110,6 @@ def extractSubject (name):
         Movements["Movement{0}".format(m)] = Electrodes
     return Movements
 
-#
-#
-# # Number of samples in normalized_tone
-#
-# # print(dff.loc['Electrode1']['Movement1'])
-# # fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8)) = plt.subplots(2,4)
-# # fig.suptitle('Electrode 1 Movement 2')
-# #
-# # ax1.set_title('R1')
-# # ax1.plot(dff.loc['Electrode1']['Movement2']['R1'])
-# #
-# # ax2.set_title('R2')
-# # ax2.plot(dff.loc['Electrode1']['Movement2']['R2'])
-# #
-# # ax3.set_title('R3')
-# # ax3.plot(dff.loc['Electrode1']['Movement2']['R3'])
-# #
-# # ax4.set_title('R4')
-# # ax4.plot(dff.loc['Electrode1']['Movement2']['R4'])
-# #
-# # ax5.set_title('R5')
-# # ax5.plot(dff.loc['Electrode1']['Movement2']['R5'])
-# #
-# # ax6.set_title('R6')
-# # ax6.plot(dff.loc['Electrode1']['Movement2']['R6'])
-# #
-# # ax7.set_title('R7')
-# # ax7.plot(dff.loc['Electrode1']['Movement2']['R7'])
-# #
-# # ax8.set_title('R8')
-# # ax8.plot(dff.loc['Electrode1']['Movement2']['R8'])
-# # plt.show()
-#
-
-
-## Features
 
 Subjects_Accuracies ={}
 subjects_accuracy = pd.DataFrame(columns= {'Accuracy', 'Accuracy_Modified'})
@@ -194,51 +154,22 @@ for i in range (1,11):
         y_train = lab_enc.fit_transform(train['Movement'])
         y_test = lab_enc.fit_transform(test['Movement'])
 
-        clf = svm.SVC(kernel="linear")
+        clf = svm.SVC(kernel="poly")
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
-        # print("Accuracy:  " ,accuracy)
         y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
         y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
         accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-        # print("Accuracy Modified:  ", accuracy_modified)
-        # subjects_accuracy.loc[subjects_accuracy.shape[0]] = {'Accuracy': accuracy, 'Accuracy_Modified': accuracy_modified}
         Electrodes["Electrode{0}".format(e)] = {'Accuracy': accuracy, 'Accuracy_Modified': accuracy_modified}
     Subjects_Accuracies["Subject{0}".format(i)] = Electrodes
 
 
 
 pretty(Subjects_Accuracies)
-electrode1_acc = []
-electrode1_mod = []
-
-electrode2_acc = []
-electrode2_mod = []
-
-electrode3_acc = []
-electrode3_mod = []
-
-electrode4_acc = []
-electrode4_mod = []
-
-electrode5_acc = []
-electrode5_mod = []
-
-electrode6_acc = []
-electrode6_mod = []
-
-electrode7_acc = []
-electrode7_mod = []
-
-electrode8_acc = []
-electrode8_mod = []
-
-electrode9_acc = []
-electrode9_mod = []
-
-electrode10_acc = []
-electrode10_mod = []
+electrode1_acc = []; electrode1_mod = []; electrode2_acc = []; electrode2_mod = []; electrode3_acc = []; electrode3_mod = []; electrode4_acc = [];
+electrode4_mod = []; electrode5_acc = []; electrode5_mod = []; electrode6_acc = []; electrode6_mod = []; electrode7_acc = []; electrode7_mod = [];
+electrode8_acc = []; electrode8_mod = []; electrode9_acc = []; electrode9_mod = []; electrode10_acc = []; electrode10_mod = []
 
 for d in Subjects_Accuracies.values():
     electrode1_acc.append(round(d['Electrode1']['Accuracy'],2))
@@ -272,33 +203,33 @@ for d in Subjects_Accuracies.values():
     electrode10_mod.append(d['Electrode10']['Accuracy_Modified'])
 
 
-# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
-#
-# x = np.arange(len(subjects))  # the label locations
-# width = 0.08  # the width of the bars
-#
-# fig, ax = plt.subplots()
-# rects1 = ax.bar(x - 9*width/2, electrode1_acc, width, label='Electrode 1')
-# rects2 = ax.bar(x - 7*width/2, electrode2_acc, width, label='Electrode 2')
-# rects3 = ax.bar(x - 5*width/2, electrode3_acc, width, label='Electrode 3')
-# rects4 = ax.bar(x - 3*width/2, electrode4_acc, width, label='Electrode 4')
-# rects5 = ax.bar(x - width/2, electrode5_acc, width, label='Electrode 5')
-# rects6 = ax.bar(x + width/2, electrode6_acc, width, label='Electrode 6')
-# rects7 = ax.bar(x + 3*width/2, electrode7_acc, width, label='Electrode 7')
-# rects8 = ax.bar(x + 5*width/2, electrode8_acc, width, label='Electrode 8')
-# rects9 = ax.bar(x + 7*width/2, electrode9_acc, width, label='Electrode 9')
-# rects10 = ax.bar(x + 9*width/2, electrode10_acc, width, label='Electrode 10')
-#
-# ax.set_ylabel('Accuracy')
-# ax.set_title('Window Accuracy')
-# ax.set_xticks(x, subjects)
-# ax.legend()
-# # ax.bar_label(rects1, padding=3)
-# # ax.bar_label(rects2, padding=3)
-# # ax.bar_label(rects3, padding=3)
-# # ax.bar_label(rects4, padding=3)
-# fig.tight_layout()
-# plt.show()
+subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+
+x = np.arange(len(subjects))  # the label locations
+width = 0.08  # the width of the bars
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - 9*width/2, electrode1_acc, width, label='Electrode 1')
+rects2 = ax.bar(x - 7*width/2, electrode2_acc, width, label='Electrode 2')
+rects3 = ax.bar(x - 5*width/2, electrode3_acc, width, label='Electrode 3')
+rects4 = ax.bar(x - 3*width/2, electrode4_acc, width, label='Electrode 4')
+rects5 = ax.bar(x - width/2, electrode5_acc, width, label='Electrode 5')
+rects6 = ax.bar(x + width/2, electrode6_acc, width, label='Electrode 6')
+rects7 = ax.bar(x + 3*width/2, electrode7_acc, width, label='Electrode 7')
+rects8 = ax.bar(x + 5*width/2, electrode8_acc, width, label='Electrode 8')
+rects9 = ax.bar(x + 7*width/2, electrode9_acc, width, label='Electrode 9')
+rects10 = ax.bar(x + 9*width/2, electrode10_acc, width, label='Electrode 10')
+
+ax.set_ylabel('Accuracy')
+ax.set_title('Window Accuracy')
+ax.set_xticks(x, subjects)
+ax.legend()
+ax.bar_label(rects1, padding=3)
+ax.bar_label(rects2, padding=3)
+ax.bar_label(rects3, padding=3)
+ax.bar_label(rects4, padding=3)
+fig.tight_layout()
+plt.show()
 
 
 subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
@@ -322,14 +253,14 @@ ax.set_ylabel('Accuracy')
 ax.set_title('Movement Accuracy')
 ax.set_xticks(x, subjects)
 ax.legend()
-# ax.bar_label(rects1, padding=3)
-# ax.bar_label(rects2, padding=3)
-# ax.bar_label(rects3, padding=3)
-# ax.bar_label(rects4, padding=3)
+ax.bar_label(rects1, padding=3)
+ax.bar_label(rects2, padding=3)
+ax.bar_label(rects3, padding=3)
+ax.bar_label(rects4, padding=3)
 fig.tight_layout()
 plt.show()
 
-#
+ #
 # X_train['Movement'] = y_train
 # df= X_train
 # fig, (ax1, ax2) = plt.subplots(1,2)
