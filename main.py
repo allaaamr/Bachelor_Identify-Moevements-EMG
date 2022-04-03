@@ -7,7 +7,9 @@ from sklearn import svm
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 from collections import Counter
-
+from matplotlib.colors import Normalize
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import StratifiedShuffleSplit
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
@@ -111,6 +113,12 @@ def extractSubject (name):
     return Movements
 
 
+
+
+C_2d_range = [1e-2, 1, 1e2]
+gamma_2d_range = [1e-1, 1, 1e1]
+classifiers = []
+
 Subjects_Accuracies ={}
 subjects_accuracy = pd.DataFrame(columns= {'Accuracy', 'Accuracy_Modified'})
 for i in range (1,11):
@@ -153,6 +161,13 @@ for i in range (1,11):
         X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
         y_train = lab_enc.fit_transform(train['Movement'])
         y_test = lab_enc.fit_transform(test['Movement'])
+
+        if(i==1):
+            for C in C_2d_range:
+                for gamma in gamma_2d_range:
+                    clf = svm.SVC(C=C, gamma=gamma)
+                    clf.fit(X_train, y_train)
+                    classifiers.append((C, gamma, clf))
 
         clf = svm.SVC(kernel="rbf")
         clf.fit(X_train, y_train)
@@ -202,6 +217,55 @@ for d in Subjects_Accuracies.values():
     electrode10_acc.append(d['Electrode10']['Accuracy'])
     electrode10_mod.append(d['Electrode10']['Accuracy_Modified'])
 
+# #############################################################################
+# Visualization
+#
+# draw visualization of parameter effects
+
+plt.figure(figsize=(8, 6))
+xx, yy = np.meshgrid(np.linspace(-3, 3, 200), np.linspace(-3, 3, 200))
+for (k, (C, gamma, clf)) in enumerate(classifiers):
+    # evaluate decision function in a grid
+    Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    # visualize decision function for these parameters
+    plt.subplot(len(C_2d_range), len(gamma_2d_range), k + 1)
+    plt.title("gamma=10^%d, C=10^%d" % (np.log10(gamma), np.log10(C)), size="medium")
+
+    # visualize parameter's effect on decision function
+    plt.pcolormesh(xx, yy, -Z, cmap=plt.cm.RdBu)
+    plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=plt.cm.RdBu_r, edgecolors="k")
+    plt.xticks(())
+    plt.yticks(())
+    plt.axis("tight")
+
+# scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
+
+# Draw heatmap of the validation accuracy as a function of gamma and C
+#
+# The score are encoded as colors with the hot colormap which varies from dark
+# red to bright yellow. As the most interesting scores are all located in the
+# 0.92 to 0.97 range we use a custom normalizer to set the mid-point to 0.92 so
+# as to make it easier to visualize the small variations of score values in the
+# interesting range while not brutally collapsing all the low score values to
+# the same color.
+#
+# plt.figure(figsize=(8, 6))
+# plt.subplots_adjust(left=0.2, right=0.95, bottom=0.15, top=0.95)
+# plt.imshow(
+#     scores,
+#     interpolation="nearest",
+#     cmap=plt.cm.hot,
+#     norm=MidpointNormalize(vmin=0.2, midpoint=0.92),
+# )
+# plt.xlabel("gamma")
+# plt.ylabel("C")
+# plt.colorbar()
+# plt.xticks(np.arange(len(gamma_range)), gamma_range, rotation=45)
+# plt.yticks(np.arange(len(C_range)), C_range)
+# plt.title("Validation accuracy")
+plt.show()
 
 # subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
 #
@@ -232,33 +296,33 @@ for d in Subjects_Accuracies.values():
 # plt.show()
 
 
-subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
-
-x = np.arange(len(subjects))  # the label locations
-width = 0.08  # the width of the bars
-
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - 9*width/2, electrode1_mod, width, label='Electrode 1')
-rects2 = ax.bar(x - 7*width/2, electrode2_mod, width, label='Electrode 2')
-rects3 = ax.bar(x - 5*width/2, electrode3_mod, width, label='Electrode 3')
-rects4 = ax.bar(x - 3*width/2, electrode4_mod, width, label='Electrode 4')
-rects5 = ax.bar(x - width/2, electrode5_mod, width, label='Electrode 5')
-rects6 = ax.bar(x + width/2, electrode6_mod, width, label='Electrode 6')
-rects7 = ax.bar(x + 3*width/2, electrode7_mod, width, label='Electrode 7')
-rects8 = ax.bar(x + 5*width/2, electrode8_mod, width, label='Electrode 8')
-rects9 = ax.bar(x + 7*width/2, electrode9_mod, width, label='Electrode 9')
-rects10 = ax.bar(x + 9*width/2, electrode10_mod, width, label='Electrode 10')
-
-ax.set_ylabel('Accuracy')
-ax.set_title('Movement Accuracy')
-ax.set_xticks(x, subjects)
-ax.legend()
-ax.bar_label(rects1, padding=3)
-ax.bar_label(rects2, padding=3)
-ax.bar_label(rects3, padding=3)
-ax.bar_label(rects4, padding=3)
-fig.tight_layout()
-plt.show()
+# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+#
+# x = np.arange(len(subjects))  # the label locations
+# width = 0.08  # the width of the bars
+#
+# fig, ax = plt.subplots()
+# rects1 = ax.bar(x - 9*width/2, electrode1_mod, width, label='Electrode 1')
+# rects2 = ax.bar(x - 7*width/2, electrode2_mod, width, label='Electrode 2')
+# rects3 = ax.bar(x - 5*width/2, electrode3_mod, width, label='Electrode 3')
+# rects4 = ax.bar(x - 3*width/2, electrode4_mod, width, label='Electrode 4')
+# rects5 = ax.bar(x - width/2, electrode5_mod, width, label='Electrode 5')
+# rects6 = ax.bar(x + width/2, electrode6_mod, width, label='Electrode 6')
+# rects7 = ax.bar(x + 3*width/2, electrode7_mod, width, label='Electrode 7')
+# rects8 = ax.bar(x + 5*width/2, electrode8_mod, width, label='Electrode 8')
+# rects9 = ax.bar(x + 7*width/2, electrode9_mod, width, label='Electrode 9')
+# rects10 = ax.bar(x + 9*width/2, electrode10_mod, width, label='Electrode 10')
+#
+# ax.set_ylabel('Accuracy')
+# ax.set_title('Movement Accuracy')
+# ax.set_xticks(x, subjects)
+# ax.legend()
+# ax.bar_label(rects1, padding=3)
+# ax.bar_label(rects2, padding=3)
+# ax.bar_label(rects3, padding=3)
+# ax.bar_label(rects4, padding=3)
+# fig.tight_layout()
+# plt.show()
 
  #
 # X_train['Movement'] = y_train
