@@ -11,6 +11,15 @@ from matplotlib.colors import Normalize
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit
 
+class MidpointNormalize(Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
+
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
 def pretty(d, indent=0):
@@ -113,8 +122,6 @@ def extractSubject (name):
     return Movements
 
 
-
-
 C_2d_range = [1e-2, 1, 1e2]
 gamma_2d_range = [1e-1, 1, 1e1]
 classifiers = []
@@ -162,12 +169,35 @@ for i in range (1,11):
         y_train = lab_enc.fit_transform(train['Movement'])
         y_test = lab_enc.fit_transform(test['Movement'])
 
-        if(i==1):
+        if(i==2):
             for C in C_2d_range:
                 for gamma in gamma_2d_range:
                     clf = svm.SVC(C=C, gamma=gamma)
                     clf.fit(X_train, y_train)
                     classifiers.append((C, gamma, clf))
+
+                C_range = np.logspace(-2, 10, 13)
+                gamma_range = np.logspace(-9, 3, 13)
+                param_grid = dict(gamma=gamma_range, C=C_range)
+                cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
+                grid = GridSearchCV(svm.SVC(), param_grid=param_grid, cv=cv)
+                grid.fit(X_train, y_train)
+                scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
+                plt.figure(figsize=(8, 6))
+                plt.subplots_adjust(left=0.2, right=0.95, bottom=0.15, top=0.95)
+                plt.imshow(
+                    scores,
+                    interpolation="nearest",
+                    cmap=plt.cm.hot,
+                    norm=MidpointNormalize(vmin=0.2, midpoint=0.92),
+                )
+                plt.xlabel("gamma")
+                plt.ylabel("C")
+                plt.colorbar()
+                plt.xticks(np.arange(len(gamma_range)), gamma_range, rotation=45)
+                plt.yticks(np.arange(len(C_range)), C_range)
+                plt.title("Validation accuracy")
+                plt.show()
 
         clf = svm.SVC(kernel="rbf")
         clf.fit(X_train, y_train)
@@ -221,24 +251,6 @@ for d in Subjects_Accuracies.values():
 # Visualization
 #
 # draw visualization of parameter effects
-
-plt.figure(figsize=(8, 6))
-xx, yy = np.meshgrid(np.linspace(-3, 3, 200), np.linspace(-3, 3, 200))
-for (k, (C, gamma, clf)) in enumerate(classifiers):
-    # evaluate decision function in a grid
-    Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-
-    # visualize decision function for these parameters
-    plt.subplot(len(C_2d_range), len(gamma_2d_range), k + 1)
-    plt.title("gamma=10^%d, C=10^%d" % (np.log10(gamma), np.log10(C)), size="medium")
-
-    # visualize parameter's effect on decision function
-    plt.pcolormesh(xx, yy, -Z, cmap=plt.cm.RdBu)
-    plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=plt.cm.RdBu_r, edgecolors="k")
-    plt.xticks(())
-    plt.yticks(())
-    plt.axis("tight")
 
 # scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
 
