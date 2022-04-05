@@ -125,127 +125,146 @@ def extractSubject (name):
 C_2d_range = [1e-2, 1, 1e2]
 gamma_2d_range = [1e-1, 1, 1e1]
 classifiers = []
-
-Subjects_Accuracies ={}
 subjects_accuracy = pd.DataFrame(columns= {'Accuracy', 'Accuracy_Modified'})
+
 for i in range (1,11):
     subject = "S" +str(i)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
-    Electrodes = {}
-    for e in range (1, 11):
-        electrode = "Electrode" + str(e)
-        M1 = dff['Movement1'][electrode]
-        M11 = dff['Movement11'][electrode]
-        train = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
-        test = pd.DataFrame(columns= {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'Movement'})
-        for r in range(1, 7):
-            rep = "R" + str(r)
-            if(r in [1, 3, 4, 6]):
-                df = train
-            else:
-                df = test
+    M1E1 = dff['Movement1']['Electrode1']
+    M1E8 = dff['Movement1']['Electrode10']
+    M11E1 = dff['Movement11']['Electrode1']
+    M11E8 = dff['Movement11']['Electrode10']
+    M28E1 = dff['Movement28']['Electrode1']
+    M28E10 = dff['Movement28']['Electrode10']
+    train = pd.DataFrame(columns={'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8', 'Movement'})
+    test = pd.DataFrame(columns={'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8', 'Movement'})
+    for r in range(1, 7):
+        rep = "R" + str(r)
+        if(r in [1, 3, 4, 6]):
+            df = train
+        else:
+            df = test
+        for x in range(0, len( M1E1[rep]), 48):
+            rms_value = rms(M1E1[rep][x:x + 50])
+            mav_value = mav(M1E1[rep][x:x + 50])
+            var_value = var(M1E1[rep][x:x + 50])
+            wl_value = wl(M1E1[rep][x:x + 50])
+            iav_value = iav(M1E1[rep][x:x + 50])
+            rms8_value = rms(M1E8[rep][x:x + 50])
+            mav8_value = mav(M1E8[rep][x:x + 50])
+            var8_value = var(M1E8[rep][x:x + 50])
+            wl8_value = wl(M1E8[rep][x:x + 50])
+            iav8_value = iav(M1E8[rep][x:x + 50])
+            movement = 0
+            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS8':rms8_value, 'MAV8': mav8_value, 'VAR8':var8_value, 'WL8':wl8_value, "IAV8":iav8_value, 'Movement':movement}
+        for x in range(0, len( M11E1[rep]), 48):
+            rms_value = rms(M11E1[rep][x:x + 50])
+            mav_value = mav(M11E1[rep][x:x + 50])
+            var_value = var(M11E1[rep][x:x + 50])
+            wl_value = wl(M11E1[rep][x:x + 50])
+            iav_value= iav(M11E1[rep][x:x + 50])
+            rms8_value = rms(M11E8[rep][x:x + 50])
+            mav8_value = mav(M11E8[rep][x:x + 50])
+            var8_value = var(M11E8[rep][x:x + 50])
+            wl8_value = wl(M11E8[rep][x:x + 50])
+            iav8_value= iav(M11E8[rep][x:x + 50])
+            movement = 1
+            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS8':rms8_value, 'MAV8': mav8_value, 'VAR8':var8_value, 'WL8':wl8_value, "IAV8":iav8_value, 'Movement':movement}
+        for x in range(0, len( M28E1[rep]), 48):
+            rms_value = rms(M28E1[rep][x:x + 50])
+            mav_value = mav(M28E1[rep][x:x + 50])
+            var_value = var(M28E1[rep][x:x + 50])
+            wl_value = wl(M28E1[rep][x:x + 50])
+            iav_value= iav(M28E1[rep][x:x + 50])
+            rms8_value = rms(M28E10[rep][x:x + 50])
+            mav8_value = mav(M28E10[rep][x:x + 50])
+            var8_value = var(M28E10[rep][x:x + 50])
+            wl8_value = wl(M28E10[rep][x:x + 50])
+            iav8_value= iav(M28E10[rep][x:x + 50])
+            movement = 2
+            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS8':rms8_value, 'MAV8': mav8_value, 'VAR8':var8_value, 'WL8':wl8_value, "IAV8":iav8_value, 'Movement':movement}
 
-            for x in range(0, len( M1[rep]), 48):
-                rms_value = rms(M1[rep][x:x + 50])
-                mav_value = mav(M1[rep][x:x + 50])
-                var_value = var(M1[rep][x:x + 50])
-                wl_value = wl(M1[rep][x:x + 50])
-                iav_value = iav(M1[rep][x:x + 50])
-                movement = 0
-                df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'Movement':movement}
-            for x in range(0, len( M11[rep]), 48):
-                rms_value = rms(M11[rep][x:x + 50])
-                mav_value = mav(M11[rep][x:x + 50])
-                var_value = var(M11[rep][x:x + 50])
-                wl_value = wl(M11[rep][x:x + 50])
-                iav_value= iav(M11[rep][x:x + 50])
-                movement = 1
-                df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'Movement':movement}
-
-        lab_enc = preprocessing.LabelEncoder()
-        features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV'}
-        X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
-        X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
-        y_train = lab_enc.fit_transform(train['Movement'])
-        y_test = lab_enc.fit_transform(test['Movement'])
-
-        if(i==2):
-            for C in C_2d_range:
-                for gamma in gamma_2d_range:
-                    clf = svm.SVC(C=C, gamma=gamma)
-                    clf.fit(X_train, y_train)
-                    classifiers.append((C, gamma, clf))
-
-                C_range = np.logspace(-2, 10, 13)
-                gamma_range = np.logspace(-9, 3, 13)
-                param_grid = dict(gamma=gamma_range, C=C_range)
-                cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
-                grid = GridSearchCV(svm.SVC(), param_grid=param_grid, cv=cv)
-                grid.fit(X_train, y_train)
-                scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
-                plt.figure(figsize=(8, 6))
-                plt.subplots_adjust(left=0.2, right=0.95, bottom=0.15, top=0.95)
-                plt.imshow(
-                    scores,
-                    interpolation="nearest",
-                    cmap=plt.cm.hot,
-                    norm=MidpointNormalize(vmin=0.2, midpoint=0.92),
-                )
-                plt.xlabel("gamma")
-                plt.ylabel("C")
-                plt.colorbar()
-                plt.xticks(np.arange(len(gamma_range)), gamma_range, rotation=45)
-                plt.yticks(np.arange(len(C_range)), C_range)
-                plt.title("Validation accuracy")
-                plt.show()
-
-        clf = svm.SVC(kernel="rbf")
-        clf.fit(X_train, y_train)
-        y_pred = clf.predict(X_test)
-        accuracy = accuracy_score(y_test, y_pred)
-        y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
-        y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
-        accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-        Electrodes["Electrode{0}".format(e)] = {'Accuracy': accuracy, 'Accuracy_Modified': accuracy_modified}
-    Subjects_Accuracies["Subject{0}".format(i)] = Electrodes
-
-
-
-pretty(Subjects_Accuracies)
-electrode1_acc = []; electrode1_mod = []; electrode2_acc = []; electrode2_mod = []; electrode3_acc = []; electrode3_mod = []; electrode4_acc = [];
-electrode4_mod = []; electrode5_acc = []; electrode5_mod = []; electrode6_acc = []; electrode6_mod = []; electrode7_acc = []; electrode7_mod = [];
-electrode8_acc = []; electrode8_mod = []; electrode9_acc = []; electrode9_mod = []; electrode10_acc = []; electrode10_mod = []
-
-for d in Subjects_Accuracies.values():
-    electrode1_acc.append(round(d['Electrode1']['Accuracy'],2))
-    electrode1_mod.append(d['Electrode1']['Accuracy_Modified'])
-
-    electrode2_acc.append(round(d['Electrode2']['Accuracy'],2))
-    electrode2_mod.append(d['Electrode2']['Accuracy_Modified'])
-
-    electrode3_acc.append(round(d['Electrode3']['Accuracy'],2))
-    electrode3_mod.append(d['Electrode3']['Accuracy_Modified'])
-
-    electrode4_acc.append(round(d['Electrode4']['Accuracy'],2))
-    electrode4_mod.append(d['Electrode4']['Accuracy_Modified'])
-
-    electrode5_acc.append(d['Electrode5']['Accuracy'])
-    electrode5_mod.append(d['Electrode5']['Accuracy_Modified'])
-
-    electrode6_acc.append(d['Electrode6']['Accuracy'])
-    electrode6_mod.append(d['Electrode6']['Accuracy_Modified'])
-
-    electrode7_acc.append(d['Electrode7']['Accuracy'])
-    electrode7_mod.append(d['Electrode7']['Accuracy_Modified'])
-
-    electrode8_acc.append(d['Electrode8']['Accuracy'])
-    electrode8_mod.append(d['Electrode8']['Accuracy_Modified'])
-
-    electrode9_acc.append(d['Electrode9']['Accuracy'])
-    electrode9_mod.append(d['Electrode9']['Accuracy_Modified'])
-
-    electrode10_acc.append(d['Electrode10']['Accuracy'])
-    electrode10_mod.append(d['Electrode10']['Accuracy_Modified'])
+lab_enc = preprocessing.LabelEncoder()
+features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8', 'Movement'}
+X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
+X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
+y_train = lab_enc.fit_transform(train['Movement'])
+y_test = lab_enc.fit_transform(test['Movement'])
+# if(i==2):
+#     for C in C_2d_range:
+#         for gamma in gamma_2d_range:
+#             clf = svm.SVC(C=C, gamma=gamma)
+#             clf.fit(X_train, y_train)
+#             classifiers.append((C, gamma, clf))
+#
+#         C_range = np.logspace(-2, 10, 13)
+#         gamma_range = np.logspace(-9, 3, 13)
+#         param_grid = dict(gamma=gamma_range, C=C_range)
+#         cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
+#         grid = GridSearchCV(svm.SVC(), param_grid=param_grid, cv=cv)
+#         grid.fit(X_train, y_train)
+#         scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
+#         plt.figure(figsize=(8, 6))
+#         plt.subplots_adjust(left=0.2, right=0.95, bottom=0.15, top=0.95)
+#         plt.imshow(
+#             scores,
+#             interpolation="nearest",
+#             cmap=plt.cm.hot,
+#             norm=MidpointNormalize(vmin=0.2, midpoint=0.92),
+#         )
+#         plt.xlabel("gamma")
+#         plt.ylabel("C")
+#         plt.colorbar()
+#         plt.xticks(np.arange(len(gamma_range)), gamma_range, rotation=45)
+#         plt.yticks(np.arange(len(C_range)), C_range)
+#         plt.title("Validation accuracy")
+#         plt.show()
+clf = svm.SVC(kernel="rbf")
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
+y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
+accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+print(accuracy)
+print(y_test_new)
+print(y_predicted_new)
+print(accuracy_modified)
+#
+# electrode1_acc = []; electrode1_mod = []; electrode2_acc = []; electrode2_mod = []; electrode3_acc = []; electrode3_mod = []; electrode4_acc = [];
+# electrode4_mod = []; electrode5_acc = []; electrode5_mod = []; electrode6_acc = []; electrode6_mod = []; electrode7_acc = []; electrode7_mod = [];
+# electrode8_acc = []; electrode8_mod = []; electrode9_acc = []; electrode9_mod = []; electrode10_acc = []; electrode10_mod = []
+#
+# for d in Subjects_Accuracies.values():
+#     electrode1_acc.append(round(d['Electrode1']['Accuracy'],2))
+#     electrode1_mod.append(d['Electrode1']['Accuracy_Modified'])
+#
+#     electrode2_acc.append(round(d['Electrode2']['Accuracy'],2))
+#     electrode2_mod.append(d['Electrode2']['Accuracy_Modified'])
+#
+#     electrode3_acc.append(round(d['Electrode3']['Accuracy'],2))
+#     electrode3_mod.append(d['Electrode3']['Accuracy_Modified'])
+#
+#     electrode4_acc.append(round(d['Electrode4']['Accuracy'],2))
+#     electrode4_mod.append(d['Electrode4']['Accuracy_Modified'])
+#
+#     electrode5_acc.append(d['Electrode5']['Accuracy'])
+#     electrode5_mod.append(d['Electrode5']['Accuracy_Modified'])
+#
+#     electrode6_acc.append(d['Electrode6']['Accuracy'])
+#     electrode6_mod.append(d['Electrode6']['Accuracy_Modified'])
+#
+#     electrode7_acc.append(d['Electrode7']['Accuracy'])
+#     electrode7_mod.append(d['Electrode7']['Accuracy_Modified'])
+#
+#     electrode8_acc.append(d['Electrode8']['Accuracy'])
+#     electrode8_mod.append(d['Electrode8']['Accuracy_Modified'])
+#
+#     electrode9_acc.append(d['Electrode9']['Accuracy'])
+#     electrode9_mod.append(d['Electrode9']['Accuracy_Modified'])
+#
+#     electrode10_acc.append(d['Electrode10']['Accuracy'])
+#     electrode10_mod.append(d['Electrode10']['Accuracy_Modified'])
 
 # #############################################################################
 # Visualization
