@@ -8,8 +8,9 @@ from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 from collections import Counter
 from matplotlib.colors import Normalize
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 
 class MidpointNormalize(Normalize):
     def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
@@ -20,8 +21,11 @@ class MidpointNormalize(Normalize):
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y))
 
+
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
+
+
 def pretty(d, indent=0):
     for key, value in d.items():
         print('\t' * indent + str(key))
@@ -32,9 +36,12 @@ def pretty(d, indent=0):
         else:
             print('\t' * (indent + 2) + str(value))
             print(" ")
+
+
 def most_frequent(List):
     occurence_count = Counter(List)
     return occurence_count.most_common(1)[0][0]
+
 
 def rms(arr):
     n = len(arr)
@@ -44,6 +51,8 @@ def rms(arr):
     mean = (square / (float)(n))
     root = math.sqrt(mean)
     return root
+
+
 def mav(arr):
     n = len(arr)
     absSum = 0
@@ -51,6 +60,8 @@ def mav(arr):
         absSum += abs(arr[i])
     mav = (absSum / (float)(n))
     return mav
+
+
 def var(arr):
     n = len(arr)
     square = 0
@@ -59,12 +70,16 @@ def var(arr):
 
     result = (square / (float)(n))
     return result
+
+
 def wl(arr):
     n = len(arr)
-    sum=0
+    sum = 0
     for i in range(1, n):
-        sum += abs(arr[i]-arr[i-1])
+        sum += abs(arr[i] - arr[i - 1])
     return sum
+
+
 def iav(arr):
     n = len(arr)
     absSum = 0
@@ -72,7 +87,8 @@ def iav(arr):
         absSum += abs(arr[i])
     return absSum
 
-def extractSubject (name):
+
+def extractSubject(name):
     ex1Path = 'DB1/' + name + '/' + name + '_A1_E1.mat'
     print(ex1Path)
     ex1 = scipy.io.loadmat(ex1Path)
@@ -106,7 +122,7 @@ def extractSubject (name):
             movementIndices = np.where(stimulus3 == (m - 27))[0]
             repetitions = consecutive(movementIndices)
             EMG = EMGdf3
-    
+
         Electrodes = {}
         for e in range(1, 11):
             temp = {}
@@ -122,109 +138,100 @@ def extractSubject (name):
     return Movements
 
 
-C_2d_range = [1e-2, 1, 1e2]
-gamma_2d_range = [1e-1, 1, 1e1]
-classifiers = []
-subjects_accuracy = pd.DataFrame(columns= {'Accuracy', 'Accuracy_Modified'})
+subjects_accuracy = pd.DataFrame(columns={'Accuracy', 'Accuracy_Modified'})
 
-for i in range (1,11):
-    subject = "S" +str(i)
-    dff = pd.DataFrame.from_dict(extractSubject(subject))
-    M1E1 = dff['Movement1']['Electrode1']
-    M1E8 = dff['Movement1']['Electrode10']
-    M11E1 = dff['Movement11']['Electrode1']
-    M11E8 = dff['Movement11']['Electrode10']
-    M28E1 = dff['Movement28']['Electrode1']
-    M28E10 = dff['Movement28']['Electrode10']
-    train = pd.DataFrame(columns={'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8', 'Movement'})
-    test = pd.DataFrame(columns={'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8', 'Movement'})
-    for r in range(1, 7):
-        rep = "R" + str(r)
-        if(r in [1, 3, 4, 6]):
-            df = train
-        else:
-            df = test
-        for x in range(0, len( M1E1[rep]), 48):
-            rms_value = rms(M1E1[rep][x:x + 50])
-            mav_value = mav(M1E1[rep][x:x + 50])
-            var_value = var(M1E1[rep][x:x + 50])
-            wl_value = wl(M1E1[rep][x:x + 50])
-            iav_value = iav(M1E1[rep][x:x + 50])
-            rms8_value = rms(M1E8[rep][x:x + 50])
-            mav8_value = mav(M1E8[rep][x:x + 50])
-            var8_value = var(M1E8[rep][x:x + 50])
-            wl8_value = wl(M1E8[rep][x:x + 50])
-            iav8_value = iav(M1E8[rep][x:x + 50])
-            movement = 0
-            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS8':rms8_value, 'MAV8': mav8_value, 'VAR8':var8_value, 'WL8':wl8_value, "IAV8":iav8_value, 'Movement':movement}
-        for x in range(0, len( M11E1[rep]), 48):
-            rms_value = rms(M11E1[rep][x:x + 50])
-            mav_value = mav(M11E1[rep][x:x + 50])
-            var_value = var(M11E1[rep][x:x + 50])
-            wl_value = wl(M11E1[rep][x:x + 50])
-            iav_value= iav(M11E1[rep][x:x + 50])
-            rms8_value = rms(M11E8[rep][x:x + 50])
-            mav8_value = mav(M11E8[rep][x:x + 50])
-            var8_value = var(M11E8[rep][x:x + 50])
-            wl8_value = wl(M11E8[rep][x:x + 50])
-            iav8_value= iav(M11E8[rep][x:x + 50])
-            movement = 1
-            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS8':rms8_value, 'MAV8': mav8_value, 'VAR8':var8_value, 'WL8':wl8_value, "IAV8":iav8_value, 'Movement':movement}
-        for x in range(0, len( M28E1[rep]), 48):
-            rms_value = rms(M28E1[rep][x:x + 50])
-            mav_value = mav(M28E1[rep][x:x + 50])
-            var_value = var(M28E1[rep][x:x + 50])
-            wl_value = wl(M28E1[rep][x:x + 50])
-            iav_value= iav(M28E1[rep][x:x + 50])
-            rms8_value = rms(M28E10[rep][x:x + 50])
-            mav8_value = mav(M28E10[rep][x:x + 50])
-            var8_value = var(M28E10[rep][x:x + 50])
-            wl8_value = wl(M28E10[rep][x:x + 50])
-            iav8_value= iav(M28E10[rep][x:x + 50])
-            movement = 2
-            df.loc[df.shape[0]] = {'RMS':rms_value, 'MAV': mav_value, 'VAR':var_value, 'WL':wl_value, "IAV":iav_value, 'RMS8':rms8_value, 'MAV8': mav8_value, 'VAR8':var8_value, 'WL8':wl8_value, "IAV8":iav8_value, 'Movement':movement}
+subject = "S" + str(2)
+dff = pd.DataFrame.from_dict(extractSubject(subject))
+M1 = dff['Movement1']
+M11 = dff['Movement11']
+M29 = dff['Movement29']
+df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+                              'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+                              'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+                              'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+                              'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+                              'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+                              'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+                              'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+                              'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+                              'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
+                              'Train','Movement'})
+for r in range(1, 7):
+    rep = "R" + str(r)
+    if (r in [1, 3, 4, 6]):
+        train = 1
+    else:
+        train = 0
+
+    data = {}
+    dataM11 = {}
+    dataM29 = {}
+    for e in range(1, 11):
+        electrode = 'Electrode' + str(e)
+        M1E = M1[electrode]
+        M11E = M11[electrode]
+        M29E = M29[electrode]
+        for x in range(0, len(M1E[rep]), 48):
+            data['RMS' + str(e)] = rms(M1E[rep][x:x + 50])
+            data['MAV' + str(e)] = mav(M1E[rep][x:x + 50])
+            data['VAR' + str(e)] = var(M1E[rep][x:x + 50])
+            data['WL' + str(e)] = wl(M1E[rep][x:x + 50])
+            data['IAV' + str(e)] = iav(M1E[rep][x:x + 50])
+
+        for x in range(0, len(M11E[rep]), 48):
+            dataM11['RMS' + str(e)] = rms(M11E[rep][x:x + 50])
+            dataM11['MAV' + str(e)] = mav(M11E[rep][x:x + 50])
+            dataM11['VAR' + str(e)] = var(M11E[rep][x:x + 50])
+            dataM11['WL' + str(e)] = wl(M11E[rep][x:x + 50])
+            dataM11['IAV' + str(e)] = iav(M11E[rep][x:x + 50])
+
+        for x in range(0, len(M29E[rep]), 48):
+            dataM29['RMS' + str(e)] = rms(M29E[rep][x:x + 50])
+            dataM29['MAV' + str(e)] = mav(M29E[rep][x:x + 50])
+            dataM29['VAR' + str(e)] = var(M29E[rep][x:x + 50])
+            dataM29['WL' + str(e)] = wl(M29E[rep][x:x + 50])
+            dataM29['IAV' + str(e)] = iav(M29E[rep][x:x + 50])
+
+    data['Movement'] = 0;     data['Train'] = train
+    dataM11['Movement'] = 1;  dataM11['Train'] = train
+    dataM29['Movement'] = 2;  dataM29['Train'] = train
+    df.loc[df.shape[0]] = data
+    df.loc[df.shape[0]] = dataM11
+    df.loc[df.shape[0]] = dataM29
+
 
 lab_enc = preprocessing.LabelEncoder()
-features = {'RMS', 'MAV', 'VAR', 'WL', 'IAV', 'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8', 'Movement'}
-X_train = pd.DataFrame.from_dict({k: train[k] for k in features})
-X_test = pd.DataFrame.from_dict({k: test[k] for k in features})
-y_train = lab_enc.fit_transform(train['Movement'])
-y_test = lab_enc.fit_transform(test['Movement'])
-# if(i==2):
-#     for C in C_2d_range:
-#         for gamma in gamma_2d_range:
-#             clf = svm.SVC(C=C, gamma=gamma)
-#             clf.fit(X_train, y_train)
-#             classifiers.append((C, gamma, clf))
-#
-#         C_range = np.logspace(-2, 10, 13)
-#         gamma_range = np.logspace(-9, 3, 13)
-#         param_grid = dict(gamma=gamma_range, C=C_range)
-#         cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
-#         grid = GridSearchCV(svm.SVC(), param_grid=param_grid, cv=cv)
-#         grid.fit(X_train, y_train)
-#         scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
-#         plt.figure(figsize=(8, 6))
-#         plt.subplots_adjust(left=0.2, right=0.95, bottom=0.15, top=0.95)
-#         plt.imshow(
-#             scores,
-#             interpolation="nearest",
-#             cmap=plt.cm.hot,
-#             norm=MidpointNormalize(vmin=0.2, midpoint=0.92),
-#         )
-#         plt.xlabel("gamma")
-#         plt.ylabel("C")
-#         plt.colorbar()
-#         plt.xticks(np.arange(len(gamma_range)), gamma_range, rotation=45)
-#         plt.yticks(np.arange(len(C_range)), C_range)
-#         plt.title("Validation accuracy")
-#         plt.show()
-clf = svm.SVC(kernel="rbf")
+features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
+
+x = df.loc[:, features].values
+y = df.loc[:,['Movement']].values
+x = StandardScaler().fit_transform(x)
+
+pca = PCA(n_components=2)
+principalComponents = pca.fit_transform(x)
+principalDf = pd.DataFrame(data=principalComponents, columns=['principal component 1', 'principal component 2'])
+finalDf = pd.concat([principalDf, df['Movement'], df['Train']], axis=1)
+
+X_train = finalDf[finalDf['Train'] == 1]
+X_test = finalDf[finalDf['Train'] == 0]
+y_train = finalDf[finalDf['Train'] == 1]['Movement']
+y_test = finalDf[finalDf['Train'] == 0]['Movement']
+
+clf = svm.SVC(kernel="linear")
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11])  for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11])  for x in range(0, len(y_pred), 11)]
+y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
 accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 print(accuracy)
 print(y_test_new)
@@ -296,7 +303,7 @@ print(accuracy_modified)
 # plt.xticks(np.arange(len(gamma_range)), gamma_range, rotation=45)
 # plt.yticks(np.arange(len(C_range)), C_range)
 # plt.title("Validation accuracy")
-plt.show()
+# plt.show()
 
 # subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
 #
@@ -355,7 +362,7 @@ plt.show()
 # fig.tight_layout()
 # plt.show()
 
- #
+#
 # X_train['Movement'] = y_train
 # df= X_train
 # fig, (ax1, ax2) = plt.subplots(1,2)
