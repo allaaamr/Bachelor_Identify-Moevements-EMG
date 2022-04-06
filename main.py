@@ -21,6 +21,10 @@ class MidpointNormalize(Normalize):
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y))
 
+def last_index(column):
+    if math.isnan(df[column].iloc[-1]):
+        return 0
+    return df[column].iloc[-1]
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
@@ -156,49 +160,45 @@ df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                               'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
                               'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
                               'Train','Movement'})
-for r in range(1, 7):
-    rep = "R" + str(r)
-    if (r in [1, 3, 4, 6]):
-        train = 1
-    else:
-        train = 0
 
-    data = {}
-    dataM11 = {}
-    dataM29 = {}
-    for e in range(1, 11):
-        electrode = 'Electrode' + str(e)
-        M1E = M1[electrode]
-        M11E = M11[electrode]
-        M29E = M29[electrode]
+for e in range(1, 11):
+    electrode = 'Electrode' + str(e)
+    M1E = M1[electrode]
+    M11E = M11[electrode]
+    M29E = M29[electrode]
+    for r in range(1, 7):
+        rep = "R" + str(r)
+        if (r in [1, 3, 4, 6]):
+            train = 1
+        else:
+            train = 0
+        data = {}; dataM11 = {}; dataM29 = {}
         for x in range(0, len(M1E[rep]), 48):
-            data['RMS' + str(e)] = rms(M1E[rep][x:x + 50])
-            data['MAV' + str(e)] = mav(M1E[rep][x:x + 50])
-            data['VAR' + str(e)] = var(M1E[rep][x:x + 50])
-            data['WL' + str(e)] = wl(M1E[rep][x:x + 50])
-            data['IAV' + str(e)] = iav(M1E[rep][x:x + 50])
+            df['RMS' + str(e)].loc[last_index('RMS' + str(e))] = rms(M1E[rep][x:x + 50])
+            df['MAV' + str(e)].loc[last_index('MAV' + str(e))] = mav(M1E[rep][x:x + 50])
+            df['VAR' + str(e)].loc[last_index('VAR' + str(e))] = var(M1E[rep][x:x + 50])
+            df['WL' + str(e)].loc[last_index('WL' + str(e))] = wl(M1E[rep][x:x + 50])
+            df['IAV' + str(e)].loc[last_index('IAV' + str(e))] = iav(M1E[rep][x:x + 50])
+            df['Movement'].loc[last_index('Movement')]=0
+            df['Train'].loc[last_index('Train')]=train
 
         for x in range(0, len(M11E[rep]), 48):
-            dataM11['RMS' + str(e)] = rms(M11E[rep][x:x + 50])
-            dataM11['MAV' + str(e)] = mav(M11E[rep][x:x + 50])
-            dataM11['VAR' + str(e)] = var(M11E[rep][x:x + 50])
-            dataM11['WL' + str(e)] = wl(M11E[rep][x:x + 50])
-            dataM11['IAV' + str(e)] = iav(M11E[rep][x:x + 50])
+            df['RMS' + str(e)].loc[last_index('RMS' + str(e))] = rms(M11E[rep][x:x + 50])
+            df['MAV' + str(e)].loc[last_index('MAV' + str(e))] = mav(M11E[rep][x:x + 50])
+            df['VAR' + str(e)].loc[last_index('VAR' + str(e))] = var(M11E[rep][x:x + 50])
+            df['WL' + str(e)].loc[last_index('WL' + str(e))] = wl(M11E[rep][x:x + 50])
+            df['IAV' + str(e)].loc[last_index('IAV' + str(e))] = iav(M11E[rep][x:x + 50])
+            df['Movement'].loc[last_index('Movement')]=1
+            df['Train'].loc[last_index('Train')]=train
 
         for x in range(0, len(M29E[rep]), 48):
-            dataM29['RMS' + str(e)] = rms(M29E[rep][x:x + 50])
-            dataM29['MAV' + str(e)] = mav(M29E[rep][x:x + 50])
-            dataM29['VAR' + str(e)] = var(M29E[rep][x:x + 50])
-            dataM29['WL' + str(e)] = wl(M29E[rep][x:x + 50])
-            dataM29['IAV' + str(e)] = iav(M29E[rep][x:x + 50])
-
-    data['Movement'] = 0;     data['Train'] = train
-    dataM11['Movement'] = 1;  dataM11['Train'] = train
-    dataM29['Movement'] = 2;  dataM29['Train'] = train
-    df.loc[df.shape[0]] = data
-    df.loc[df.shape[0]] = dataM11
-    df.loc[df.shape[0]] = dataM29
-
+            df['RMS' + str(e)].loc[last_index('RMS' + str(e))] = rms(M29E[rep][x:x + 50])
+            df['MAV' + str(e)].loc[last_index('MAV' + str(e))] = mav(M29E[rep][x:x + 50])
+            df['VAR' + str(e)].loc[last_index('VAR' + str(e))] = var(M29E[rep][x:x + 50])
+            df['WL' + str(e)].loc[last_index('WL' + str(e))] = wl(M29E[rep][x:x + 50])
+            df['IAV' + str(e)].loc[last_index('IAV' + str(e))] = iav(M29E[rep][x:x + 50])
+            df['Movement'].loc[last_index('Movement')]=2
+            df['Train'].loc[last_index('Train')]=train
 
 lab_enc = preprocessing.LabelEncoder()
 features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
