@@ -21,15 +21,9 @@ class MidpointNormalize(Normalize):
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y))
 
-def last_index(column):
-    if math.isnan(df[column].iloc[-1]):
-        return 0
-    return df[column].iloc[-1]
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
-
-
 def pretty(d, indent=0):
     for key, value in d.items():
         print('\t' * indent + str(key))
@@ -40,13 +34,9 @@ def pretty(d, indent=0):
         else:
             print('\t' * (indent + 2) + str(value))
             print(" ")
-
-
 def most_frequent(List):
     occurence_count = Counter(List)
     return occurence_count.most_common(1)[0][0]
-
-
 def rms(arr):
     n = len(arr)
     square = 0
@@ -55,8 +45,6 @@ def rms(arr):
     mean = (square / (float)(n))
     root = math.sqrt(mean)
     return root
-
-
 def mav(arr):
     n = len(arr)
     absSum = 0
@@ -64,8 +52,6 @@ def mav(arr):
         absSum += abs(arr[i])
     mav = (absSum / (float)(n))
     return mav
-
-
 def var(arr):
     n = len(arr)
     square = 0
@@ -74,24 +60,18 @@ def var(arr):
 
     result = (square / (float)(n))
     return result
-
-
 def wl(arr):
     n = len(arr)
     sum = 0
     for i in range(1, n):
         sum += abs(arr[i] - arr[i - 1])
     return sum
-
-
 def iav(arr):
     n = len(arr)
     absSum = 0
     for i in range(0, n):
         absSum += abs(arr[i])
     return absSum
-
-
 def extractSubject(name):
     ex1Path = 'DB1/' + name + '/' + name + '_A1_E1.mat'
     print(ex1Path)
@@ -140,104 +120,155 @@ def extractSubject(name):
             Electrodes["Electrode{0}".format(e)] = temp
         Movements["Movement{0}".format(m)] = Electrodes
     return Movements
-
+def Average(lst):
+    return sum(lst) / len(lst)
 
 subjects_accuracy = pd.DataFrame(columns={'Accuracy', 'Accuracy_Modified'})
+window = []
+movement = []
+for s in range(1,11):
+    subject = "S" + str(s)
+    dff = pd.DataFrame.from_dict(extractSubject(subject))
+    M1 = dff['Movement1']
+    M11 = dff['Movement11']
+    M29 = dff['Movement29']
+    df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+                                  'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+                                  'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+                                  'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+                                  'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+                                  'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+                                  'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+                                  'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+                                  'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+                                  'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
+                                  'Train','Movement'})
 
-subject = "S" + str(2)
-dff = pd.DataFrame.from_dict(extractSubject(subject))
-M1 = dff['Movement1']
-M11 = dff['Movement11']
-M29 = dff['Movement29']
-df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
-                              'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
-                              'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
-                              'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
-                              'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
-                              'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
-                              'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
-                              'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
-                              'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
-                              'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
-                              'Train','Movement'})
+    for e in range(1, 11):
+        i = 0
+        electrode = 'Electrode' + str(e)
+        M1E = M1[electrode]
+        M11E = M11[electrode]
+        M29E = M29[electrode]
+        for r in range(1, 7):
+            rep = "R" + str(r)
+            if (r in [1, 3, 4, 6]):
+                train = 1
+            else:
+                train = 0
+            data = {}; dataM11 = {}; dataM29 = {}
+            for x in range(0, len(M1E[rep]), 48):
 
-for e in range(1, 11):
-    electrode = 'Electrode' + str(e)
-    M1E = M1[electrode]
-    M11E = M11[electrode]
-    M29E = M29[electrode]
-    for r in range(1, 7):
-        rep = "R" + str(r)
-        if (r in [1, 3, 4, 6]):
-            train = 1
-        else:
-            train = 0
-        data = {}; dataM11 = {}; dataM29 = {}
-        for x in range(0, len(M1E[rep]), 48):
-            df['RMS' + str(e)].loc[last_index('RMS' + str(e))] = rms(M1E[rep][x:x + 50])
-            df['MAV' + str(e)].loc[last_index('MAV' + str(e))] = mav(M1E[rep][x:x + 50])
-            df['VAR' + str(e)].loc[last_index('VAR' + str(e))] = var(M1E[rep][x:x + 50])
-            df['WL' + str(e)].loc[last_index('WL' + str(e))] = wl(M1E[rep][x:x + 50])
-            df['IAV' + str(e)].loc[last_index('IAV' + str(e))] = iav(M1E[rep][x:x + 50])
-            df['Movement'].loc[last_index('Movement')]=0
-            df['Train'].loc[last_index('Train')]=train
+                df.at[i, 'RMS' + str(e)] = rms(M1E[rep][x:x + 50])
+                df.at[i, 'MAV' + str(e)] = mav(M1E[rep][x:x + 50])
+                df.at[i, 'VAR' + str(e)] = var(M1E[rep][x:x + 50])
+                df.at[i, 'WL' + str(e)] = wl(M1E[rep][x:x + 50])
+                df.at[i, 'IAV' + str(e)] = iav(M1E[rep][x:x + 50])
+                df.at[i, 'Movement']=0
+                df.at[i, 'Train'] =train
+                i+=1
 
-        for x in range(0, len(M11E[rep]), 48):
-            df['RMS' + str(e)].loc[last_index('RMS' + str(e))] = rms(M11E[rep][x:x + 50])
-            df['MAV' + str(e)].loc[last_index('MAV' + str(e))] = mav(M11E[rep][x:x + 50])
-            df['VAR' + str(e)].loc[last_index('VAR' + str(e))] = var(M11E[rep][x:x + 50])
-            df['WL' + str(e)].loc[last_index('WL' + str(e))] = wl(M11E[rep][x:x + 50])
-            df['IAV' + str(e)].loc[last_index('IAV' + str(e))] = iav(M11E[rep][x:x + 50])
-            df['Movement'].loc[last_index('Movement')]=1
-            df['Train'].loc[last_index('Train')]=train
+            for x in range(0, len(M11E[rep]), 48):
+                df.at[i, 'RMS' + str(e)] = rms(M11E[rep][x:x + 50])
+                df.at[i, 'MAV' + str(e)] = mav(M11E[rep][x:x + 50])
+                df.at[i, 'VAR' + str(e)] = var(M11E[rep][x:x + 50])
+                df.at[i, 'WL' + str(e)] = wl(M11E[rep][x:x + 50])
+                df.at[i, 'IAV' + str(e)] = iav(M11E[rep][x:x + 50])
+                df.at[i, 'Movement'] = 1
+                df.at[i, 'Train'] =train
+                i+=1
 
-        for x in range(0, len(M29E[rep]), 48):
-            df['RMS' + str(e)].loc[last_index('RMS' + str(e))] = rms(M29E[rep][x:x + 50])
-            df['MAV' + str(e)].loc[last_index('MAV' + str(e))] = mav(M29E[rep][x:x + 50])
-            df['VAR' + str(e)].loc[last_index('VAR' + str(e))] = var(M29E[rep][x:x + 50])
-            df['WL' + str(e)].loc[last_index('WL' + str(e))] = wl(M29E[rep][x:x + 50])
-            df['IAV' + str(e)].loc[last_index('IAV' + str(e))] = iav(M29E[rep][x:x + 50])
-            df['Movement'].loc[last_index('Movement')]=2
-            df['Train'].loc[last_index('Train')]=train
+            for x in range(0, len(M29E[rep]), 48):
+                df.at[i, 'RMS' + str(e)] = rms(M29E[rep][x:x + 50])
+                df.at[i, 'MAV' + str(e)] = mav(M29E[rep][x:x + 50])
+                df.at[i, 'VAR' + str(e)] = var(M29E[rep][x:x + 50])
+                df.at[i, 'WL' + str(e)] = wl(M29E[rep][x:x + 50])
+                df.at[i, 'IAV' + str(e)] = iav(M29E[rep][x:x + 50])
+                df.at[i, 'Movement']=2
+                df.at[i, 'Train'] =train
+                i+=1
+    lab_enc = preprocessing.LabelEncoder()
+    features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+                'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+                'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+                'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+                'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+                'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+                'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+                'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+                'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+                'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
 
-lab_enc = preprocessing.LabelEncoder()
-features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
-            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
-            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
-            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
-            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
-            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
-            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
-            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
-            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
-            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
+    x = df.loc[:, features].values
+    y = df.loc[:,['Movement']].values
+    y=y.astype('int')
+    x = StandardScaler().fit_transform(x)
 
-x = df.loc[:, features].values
-y = df.loc[:,['Movement']].values
-x = StandardScaler().fit_transform(x)
+    pca = PCA(n_components=1)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data=principalComponents, columns=['PC 1'])
+    finalDf = pd.concat([principalDf, df['Movement'], df['Train']], axis=1)
 
-pca = PCA(n_components=2)
-principalComponents = pca.fit_transform(x)
-principalDf = pd.DataFrame(data=principalComponents, columns=['principal component 1', 'principal component 2'])
-finalDf = pd.concat([principalDf, df['Movement'], df['Train']], axis=1)
+    X_train = finalDf[finalDf['Train'] == 1]
+    X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    X_test = finalDf[finalDf['Train'] == 0]
+    X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
+    y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 
-X_train = finalDf[finalDf['Train'] == 1]
-X_test = finalDf[finalDf['Train'] == 0]
-y_train = finalDf[finalDf['Train'] == 1]['Movement']
-y_test = finalDf[finalDf['Train'] == 0]['Movement']
+    clf = svm.SVC(kernel="linear")
+    clf.fit(X_train, y_train)
 
-clf = svm.SVC(kernel="linear")
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-print(accuracy)
-print(y_test_new)
-print(y_predicted_new)
-print(accuracy_modified)
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+    y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+    window.append(accuracy)
+    movement.append(accuracy_modified)
+
+    print("Window Accuracy",accuracy)
+    print("Movement Accuracy", accuracy_modified)
+print(Average(window))
+print(Average(movement))
+# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+
+# x = np.arange(len(subjects))  # the label locations
+# width = 0.2  # the width of the bars
 #
+# fig, ax = plt.subplots()
+# window = ax.bar(x - width/2, window, width, label='Window Accuracy')
+# movement = ax.bar(x + width/2, movement, width, label='Movement Accuracy')
+#
+# ax.set_ylabel('Accuracy')
+# ax.set_xlabel('Subjects')
+# ax.set_title('PCA = 5')
+# ax.set_xticks(x, subjects)
+# ax.legend()
+# ax.bar_label(window, padding=3)
+# ax.bar_label(movement, padding=3)
+# fig.tight_layout()
+# plt.show()
+#
+# pca = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+# w = [0.45, 0.67, 0.76, 0.82, 0.86, 0.86, 0.88, 0.89, 0.89, 0.89, 0.89]
+# m = [0.46, 0.76, 0.86, 0.93, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.96]
+# x = np.arange(len(pca))  # the label locations
+# width = 0.2  # the width of the bars
+#
+# fig, ax = plt.subplots()
+# w = ax.bar(x - width/2, w, width, label='Average Window Accuracy')
+# m = ax.bar(x + width/2, m, width, label='Average Movement Accuracy')
+#
+# ax.set_ylabel('Accuracy')
+# ax.set_xlabel('PCA')
+# ax.set_title('PCA Accuracies')
+# ax.set_xticks(x, pca)
+# ax.legend()
+# ax.bar_label(w, padding=3)
+# ax.bar_label(m, padding=3)
+# fig.tight_layout()
+# plt.show()
 # electrode1_acc = []; electrode1_mod = []; electrode2_acc = []; electrode2_mod = []; electrode3_acc = []; electrode3_mod = []; electrode4_acc = [];
 # electrode4_mod = []; electrode5_acc = []; electrode5_mod = []; electrode6_acc = []; electrode6_mod = []; electrode7_acc = []; electrode7_mod = [];
 # electrode8_acc = []; electrode8_mod = []; electrode9_acc = []; electrode9_mod = []; electrode10_acc = []; electrode10_mod = []
