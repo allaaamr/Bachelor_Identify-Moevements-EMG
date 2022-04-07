@@ -125,6 +125,7 @@ def Average(lst):
 
 subjects_accuracy = pd.DataFrame(columns={'Accuracy', 'Accuracy_Modified'})
 window = []
+movement = []
 for s in range(1,11):
     subject = "S" + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
@@ -178,7 +179,7 @@ for s in range(1,11):
     y=y.astype('int')
     x = StandardScaler().fit_transform(x)
 
-    pca = PCA(n_components=p)
+    pca = PCA(n_components=12)
     principalComponents = pca.fit_transform(x)
     principalDf = pd.DataFrame(data=principalComponents)
     finalDf = pd.concat([principalDf, df['Movement'], df['Train']], axis=1)
@@ -199,7 +200,8 @@ for s in range(1,11):
     y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-    movement.append(accuracy_modified)
+    window.append(round(accuracy,2))
+    movement.append(round(accuracy_modified,2))
 
     print("Window Accuracy",accuracy)
     print("Movement Accuracy", accuracy_modified)
@@ -207,24 +209,24 @@ for s in range(1,11):
 
 # print(Average(window))
 # print(Average(movement))
-# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
 # pca = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15']
-# x = np.arange(len(pca))  # the label locations
-# width = 0.35  # the width of the bars
+x = np.arange(len(subjects))  # the label locations
+width = 0.25  # the width of the bars
 # #
-# fig, ax = plt.subplots()
-# # window = ax.bar(x - width/2, window, width, label='Window Accuracy')
-# movement = ax.bar(x , pca_acc, width, label='Movement Accuracy')
-#
-# ax.set_ylabel('Accuracy')
-# ax.set_xlabel('PCA number')
-# ax.set_title('PCAs')
-# ax.set_xticks(x, pca)
-# ax.legend()
-# #ax.bar_label(pca_acc)
-# # ax.bar_label(movement, padding=3)
-# fig.tight_layout()
-# plt.show()
+fig, ax = plt.subplots()
+window = ax.bar(x - width/2, window, width, label='Window Accuracy')
+movement = ax.bar(x + width/2, movement, width, label='Movement Accuracy')
+
+ax.set_ylabel('Accuracy')
+ax.set_xlabel('Subjects')
+ax.set_title('Subject Accuracy for PCA=12')
+ax.set_xticks(x, subjects)
+ax.legend()
+ax.bar_label(window, padding=3)
+ax.bar_label(movement, padding=3)
+fig.tight_layout()
+plt.show()
 
 # pca = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 # w = [0.45, 0.67, 0.76, 0.82, 0.86, 0.86, 0.88, 0.89, 0.89, 0.89, 0.89]
