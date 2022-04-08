@@ -199,7 +199,7 @@ for p in range(4,18):
     y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
     y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 
-    clf = svm.SVC(kernel="linear")
+    clf = svm.SVC(kernel="poly")
     clf.fit(X_train, y_train)
 
     y_pred = clf.predict(X_test)
