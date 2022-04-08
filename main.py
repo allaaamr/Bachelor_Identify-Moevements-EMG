@@ -10,7 +10,8 @@ from collections import Counter
 from matplotlib.colors import Normalize
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def consecutive(data, stepsize=1):
@@ -117,22 +118,19 @@ def Average(lst):
 subjects_accuracy = pd.DataFrame(columns={'Accuracy', 'Accuracy_Modified'})
 pca_window = []
 pca_movement = []
-window = []
-movement = []
-# final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
-#                            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
-#                            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
-#                            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
-#                            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
-#                            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
-#                            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
-#                            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
-#                            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
-#                            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
-#                            'Train','Movement'})
-# for p in range(6,16):
-#     window = []
-#     movement = []
+final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+                           'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+                           'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+                           'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+                           'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+                           'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+                           'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+                           'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+                           'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+                           'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
+                           'Train','Movement'})
+
+
 for s in range(1,28):
     subject = "S" + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
@@ -169,6 +167,9 @@ for s in range(1,28):
                     df.at[i, 'Train'] = train
                     i += 1
 
+    final_df = final_df.append(df, ignore_index=True)
+
+for p in range(4,18):
     lab_enc = preprocessing.LabelEncoder()
     features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                 'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
@@ -181,12 +182,12 @@ for s in range(1,28):
                 'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
                 'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
 
-    x = df.loc[:, features].values
-    y = df.loc[:,['Movement']].values
+    x = final_df.loc[:, features].values
+    y = final_df.loc[:,['Movement']].values
     y=y.astype('int')
     x = StandardScaler().fit_transform(x)
 
-    pca = PCA(n_components=12)
+    pca = PCA(n_components=p)
     principalComponents = pca.fit_transform(x)
     principalDf = pd.DataFrame(data=principalComponents)
     finalDf = pd.concat([principalDf, df['Movement'], df['Train']], axis=1)
@@ -207,37 +208,35 @@ for s in range(1,28):
     y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-    window.append(accuracy)
-    movement.append(accuracy_modified)
-
+    print(p)
     print("Window Accuracy",accuracy)
     print("Movement Accuracy", accuracy_modified)
-    # pca_window.append(Average(window))
-    # pca_movement.append(Average(movement))
+    pca_window.append(accuracy)
+    pca_movement.append(accuracy_modified)
 
     # print(Average(window))
     # print(Average(movement))
 
-
-subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
-            'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
-            'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
-# pca = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15']
-x = np.arange(len(subjects))  # the label locations
+#subjects = ['S1', 'S2', 'S3']
+# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
+#             'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
+#             'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
+pca = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+x = np.arange(len(pca))  # the label locations
 width = 0.1  # the width of the bars
 # #
 fig, ax = plt.subplots()
-window = ax.bar(x - width/2, window, width, label='Window Accuracy')
-movement = ax.bar(x + width/2, movement, width, label='Movement Accuracy')
+#window = ax.bar(x - width/2, window, width, label='Window Accuracy')
+movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
 
 ax.set_ylabel('Accuracy')
 ax.set_xlabel('PCA')
-ax.set_title('Subject Accuracy for PCA=12')
+ax.set_title('PCAs Movement Accuracies')
 #ax.set_title('Average Subject Accuracies Per PCA')
 ax.set_xticks(x, pca)
 ax.legend()
-ax.bar_label(window, padding=3)
-ax.bar_label(movement, padding=3)
+#ax.bar_label(window)
+ax.bar_label(movement)
 fig.tight_layout()
 plt.show()
 
