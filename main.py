@@ -135,6 +135,7 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
 
 
 for s in range(1,11):
+    start = time.time()
     subject = "S" + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
@@ -170,6 +171,8 @@ for s in range(1,11):
                     df.at[i, 'Train'] = train
                     i += 1
 
+    end = time.time()
+    print("Time:", 1000*(end-start))
     final_df = final_df.append(df, ignore_index=True)
 
 
