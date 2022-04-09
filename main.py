@@ -134,7 +134,7 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                            'Train','Movement'})
 
 
-for s in range(1,28):
+for s in range(1,11):
     subject = "S" + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
@@ -190,35 +190,29 @@ y = final_df.loc[:,['Movement']].values
 y=y.astype('int')
 x = StandardScaler().fit_transform(x)
 
-pca = PCA(n_components=12)
-principalComponents = pca.fit_transform(x)
-principalDf = pd.DataFrame(data=principalComponents)
-finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
+for p in range(6,17):
+    pca = PCA(n_components=p)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data=principalComponents)
+    finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
 
-X_train = finalDf[finalDf['Train'] == 1]
-X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
-X_test = finalDf[finalDf['Train'] == 0]
-X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
-y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
-y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
+    X_train = finalDf[finalDf['Train'] == 1]
+    X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    X_test = finalDf[finalDf['Train'] == 0]
+    X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
+    y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 
-print(X_train)
-print(X_test)
-X= finalDf.copy()
-X.drop({'Movement', 'Train'}, axis=1, inplace=True)
-y= finalDf['Movement']
+    clf = svm.SVC(kernel="poly")
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+    y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-clf = svm.SVC(kernel="poly")
-clf.fit(X_train, y_train)
-print("Ho")
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-
-print("Window Accuracy",accuracy)
-print("Movement Accuracy", accuracy_modified)
+    print("Window Accuracy",accuracy)
+    print("Movement Accuracy", accuracy_modified)
 # pca_window.append(accuracy)
 # pca_movement.append(accuracy_modified)
 
