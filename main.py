@@ -12,7 +12,19 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import warnings
 import time
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import GridSearchCV
 warnings.filterwarnings("ignore")
+
+class MidpointNormalize(Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
+
 
 
 def consecutive(data, stepsize=1):
@@ -160,76 +172,78 @@ for s in range(1,28):
 
     final_df = final_df.append(df, ignore_index=True)
 
-for p in range(4,18):
-    lab_enc = preprocessing.LabelEncoder()
-    features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
-                'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
-                'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
-                'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
-                'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
-                'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
-                'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
-                'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
-                'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
-                'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
 
-    x = final_df.loc[:, features].values
-    y = final_df.loc[:,['Movement']].values
-    y=y.astype('int')
-    x = StandardScaler().fit_transform(x)
+lab_enc = preprocessing.LabelEncoder()
+features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
 
-    pca = PCA(n_components=p)
-    principalComponents = pca.fit_transform(x)
-    principalDf = pd.DataFrame(data=principalComponents)
-    finalDf = pd.concat([principalDf, df['Movement'], df['Train']], axis=1)
+x = final_df.loc[:, features].values
+y = final_df.loc[:,['Movement']].values
+y=y.astype('int')
+x = StandardScaler().fit_transform(x)
 
-    X_train = finalDf[finalDf['Train'] == 1]
-    X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
-    X_test = finalDf[finalDf['Train'] == 0]
-    X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
-    y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
-    y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
+pca = PCA(n_components=12)
+principalComponents = pca.fit_transform(x)
+principalDf = pd.DataFrame(data=principalComponents)
+finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
 
-    clf = svm.SVC(kernel="poly")
-    clf.fit(X_train, y_train)
+X_train = finalDf[finalDf['Train'] == 1]
+X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
+X_test = finalDf[finalDf['Train'] == 0]
+X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
+y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
+y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 
-    y_pred = clf.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-    y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+print(X_train)
+print(X_test)
+X= finalDf.copy()
+X.drop({'Movement', 'Train'}, axis=1, inplace=True)
+y= finalDf['Movement']
 
-    print(p)
-    print("Window Accuracy",accuracy)
-    print("Movement Accuracy", accuracy_modified)
-    pca_window.append(accuracy)
-    pca_movement.append(accuracy_modified)
+clf = svm.SVC(kernel="poly")
+clf.fit(X_train, y_train)
+print("Ho")
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-    # print(Average(window))
-    # print(Average(movement))
+print("Window Accuracy",accuracy)
+print("Movement Accuracy", accuracy_modified)
+# pca_window.append(accuracy)
+# pca_movement.append(accuracy_modified)
 
 #subjects = ['S1', 'S2', 'S3']
 # subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
 #             'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
 #             'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
-pca = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
-x = np.arange(len(pca))  # the label locations
-width = 0.1  # the width of the bars
-# #
-fig, ax = plt.subplots()
-#window = ax.bar(x - width/2, window, width, label='Window Accuracy')
-movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
-
-ax.set_ylabel('Accuracy')
-ax.set_xlabel('PCA')
-ax.set_title('PCAs Movement Accuracies')
-#ax.set_title('Average Subject Accuracies Per PCA')
-ax.set_xticks(x, pca)
-ax.legend()
-#ax.bar_label(window)
-ax.bar_label(movement)
-fig.tight_layout()
-plt.show()
+# pca = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+# x = np.arange(len(pca))  # the label locations
+# width = 0.1  # the width of the bars
+# # #
+# fig, ax = plt.subplots()
+# #window = ax.bar(x - width/2, window, width, label='Window Accuracy')
+# movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
+#
+# ax.set_ylabel('Accuracy')
+# ax.set_xlabel('PCA')
+# ax.set_title('PCAs Movement Accuracies')
+# #ax.set_title('Average Subject Accuracies Per PCA')
+# ax.set_xticks(x, pca)
+# ax.legend()
+# #ax.bar_label(window)
+# ax.bar_label(movement)
+# fig.tight_layout()
+# plt.show()
 
 # pca = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 # w = [0.45, 0.67, 0.76, 0.82, 0.86, 0.86, 0.88, 0.89, 0.89, 0.89, 0.89]
@@ -289,18 +303,24 @@ plt.show()
 # Visualization
 #
 # draw visualization of parameter effects
-
+#
+# C_range = np.logspace(-2, 10, 13)
+# gamma_range = np.logspace(-9, 3, 13)
+# param_grid = dict(gamma=gamma_range, C=C_range)
+# cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
+# grid = GridSearchCV(svm.SVC(), param_grid=param_grid, cv=cv)
+# grid.fit(X, y)
 # scores = grid.cv_results_["mean_test_score"].reshape(len(C_range), len(gamma_range))
-
-# Draw heatmap of the validation accuracy as a function of gamma and C
 #
-# The score are encoded as colors with the hot colormap which varies from dark
-# red to bright yellow. As the most interesting scores are all located in the
-# 0.92 to 0.97 range we use a custom normalizer to set the mid-point to 0.92 so
-# as to make it easier to visualize the small variations of score values in the
-# interesting range while not brutally collapsing all the low score values to
-# the same color.
-#
+# # Draw heatmap of the validation accuracy as a function of gamma and C
+# #
+# # The score are encoded as colors with the hot colormap which varies from dark
+# # red to bright yellow. As the most interesting scores are all located in the
+# # 0.92 to 0.97 range we use a custom normalizer to set the mid-point to 0.92 so
+# # as to make it easier to visualize the small variations of score values in the
+# # interesting range while not brutally collapsing all the low score values to
+# # the same color.
+# #
 # plt.figure(figsize=(8, 6))
 # plt.subplots_adjust(left=0.2, right=0.95, bottom=0.15, top=0.95)
 # plt.imshow(
