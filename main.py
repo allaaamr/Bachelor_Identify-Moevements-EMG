@@ -11,6 +11,7 @@ from matplotlib.colors import Normalize
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import warnings
+import time
 warnings.filterwarnings("ignore")
 
 
@@ -31,26 +32,20 @@ def most_frequent(List):
     return occurence_count.most_common(1)[0][0]
 def rms(arr):
     n = len(arr)
-    square = 0
-    for i in range(0, n):
-        square += (arr[i] ** 2)
-    mean = (square / (float)(n))
+    squared = np.array(arr) * np.array(arr)
+    sum = np.sum(squared)
+    mean = (sum / (float)(n))
     root = math.sqrt(mean)
     return root
 def mav(arr):
     n = len(arr)
-    absSum = 0
-    for i in range(0, n):
-        absSum += abs(arr[i])
-    mav = (absSum / (float)(n))
+    mav = sum((abs(np.array(arr))))/(float)(n)
     return mav
 def var(arr):
     n = len(arr)
-    square = 0
-    for i in range(0, n):
-        square += (arr[i] ** 2)
-
-    result = (square / (float)(n))
+    squared = np.array(arr) * np.array(arr)
+    sum = np.sum(squared)
+    result = (sum / (float)(n))
     return result
 def wl(arr):
     n = len(arr)
@@ -59,11 +54,7 @@ def wl(arr):
         sum += abs(arr[i] - arr[i - 1])
     return sum
 def iav(arr):
-    n = len(arr)
-    absSum = 0
-    for i in range(0, n):
-        absSum += abs(arr[i])
-    return absSum
+    return sum(abs(np.array(arr)))
 def extractSubject(name):
     ex1Path = 'DB1/' + name + '/' + name + '_A1_E1.mat'
     print(ex1Path)
