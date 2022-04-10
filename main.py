@@ -160,7 +160,6 @@ for s in range(1,11):
                     train = 1
                 else:
                     train = 0
-                data = {}; dataM11 = {}; dataM29 = {}
                 for x in range(0, len(M[rep]), 48):
                     df.at[i, 'RMS' + str(e)] = rms(M[rep][x:x + 50])
                     df.at[i, 'MAV' + str(e)] = mav(M[rep][x:x + 50])
