@@ -135,8 +135,7 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
 
 
 for s in range(1,11):
-    start = time.time()
-    subject = "S" + str(s)
+    subject = 'S' + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                                   'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
@@ -171,46 +170,51 @@ for s in range(1,11):
                     df.at[i, 'Train'] = train
                     i += 1
 
-    end = time.time()
-    print("Time:", 1000*(end-start))
     final_df = final_df.append(df, ignore_index=True)
 
 
 lab_enc = preprocessing.LabelEncoder()
-# x = final_df.loc[:, features].values
-# y = final_df.loc[:,['Movement']].values
-# y=y.astype('int')
-# x = StandardScaler().fit_transform(x)
+features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
+x = final_df.loc[:, features].values
+y = final_df.loc[:,['Movement']].values
+y=y.astype('int')
+x = StandardScaler().fit_transform(x)
 
-# for p in range(6,17):
-#     pca = PCA(n_components=p)
-#     principalComponents = pca.fit_transform(x)
-#     principalDf = pd.DataFrame(data=principalComponents)
-#     finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
-#
-# X_train = finalDf[finalDf['Train'] == 1]
-# X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
-# X_test = finalDf[finalDf['Train'] == 0]
-# X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
-# y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
-# y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
-X_train = final_df[final_df['Train'] == 1]
-X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
-X_test = final_df[final_df['Train'] == 0]
-X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
-y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
-y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
+pcas = []
+for p in range(5,25):
+    pca = PCA(n_components=p)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data=principalComponents)
+    finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
 
-clf = svm.SVC(kernel="poly")
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+    X_train = finalDf[finalDf['Train'] == 1]
+    X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    X_test = finalDf[finalDf['Train'] == 0]
+    X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
+    y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 
-print("Window Accuracy",accuracy)
-print("Movement Accuracy", accuracy_modified)
+    clf = svm.SVC(kernel="linear")
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+    y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+
+    print("Window Accuracy",accuracy)
+    print("Movement Accuracy", accuracy_modified)
+    pcas.append(accuracy_modified)
+
 # pca_window.append(accuracy)
 # pca_movement.append(accuracy_modified)
 
