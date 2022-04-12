@@ -9,12 +9,14 @@ from sklearn.metrics import accuracy_score
 from collections import Counter
 from matplotlib.colors import Normalize
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import warnings
 from sklearn.ensemble import RandomForestClassifier
 import time
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+
 warnings.filterwarnings("ignore")
 
 class MidpointNormalize(Normalize):
@@ -186,17 +188,17 @@ y = final_df.loc[:,['Movement']].values
 y=y.astype('int')
 x = StandardScaler().fit_transform(x)
 
+
 X_train = final_df[final_df['Train'] == 1].loc[:, features]
-print(X_train)
 X_test = final_df[final_df['Train'] == 0].loc[:, features]
 y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
 y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
-print(y_train)
 
-X_train.to_csv('X_train.csv')
-X_test.to_csv('X_test.csv')
-y_train.to_csv('y_train.csv')
-y_test.to_csv('y_test.csv')
+
+# X_train.to_csv('X_train.csv')
+# X_test.to_csv('X_test.csv')
+# y_train.to_csv('y_train.csv')
+# y_test.to_csv('y_test.csv')
 #clf = svm.SVC(kernel="rbf")
 clf = RandomForestClassifier(n_estimators=100)
 clf.fit(X_train, y_train)
