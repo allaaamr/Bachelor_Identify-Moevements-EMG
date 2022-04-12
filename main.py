@@ -194,26 +194,43 @@ X_test = final_df[final_df['Train'] == 0].loc[:, features]
 y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
 y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 
-
+X_train = StandardScaler().fit_transform(X_train)
+X_test = StandardScaler().fit_transform(X_test)
 #clf = RandomForestClassifier(n_estimators=100)
 
-error_rate = []
+accuracies_knn = []
 for i in range(1,40):
     knn = KNeighborsClassifier(n_neighbors=i)
-    knn.fit(x_train,y_train)
-    pred_i = knn.predict(x_test)
-    error_rate.append(np.mean(pred_i != y_test))
-    
-clf = KNeighborsClassifier(n_neighbors=3)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+    knn.fit(X_train,y_train)
+    pred_i = knn.predict(X_test)
+    accuracy = accuracy_score(y_test, pred_i)
+    y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+    y_predicted_new = [most_frequent(pred_i[x:x + 11]) for x in range(0, len(pred_i), 11)]
+    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+    print("KNN ", i)
+    print("Window Accuracy",accuracy)
+    print("Movement Accuracy", accuracy_modified)
+    accuracies_knn.append(accuracy_modified)
 
-print("Window Accuracy",accuracy)
-print("Movement Accuracy", accuracy_modified)
+plt.figure(figsize=(10,6))
+plt.plot(range(1,40),accuracies_knn,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
+plt.title('Accuracy vs. K Value')
+plt.xlabel('K')
+plt.ylabel('Accuracy')
+plt.show()
+req_k_value = accuracies_knn.index(max(accuracies_knn))+1
+print("Maximum accuracy:-",max(accuracies_knn),"at K =",req_k_value)
+
+# clf = KNeighborsClassifier(n_neighbors=3)
+# clf.fit(X_train, y_train)
+# y_pred = clf.predict(X_test)
+# accuracy = accuracy_score(y_test, y_pred)
+# y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+# y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+# accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+#
+# print("Window Accuracy",accuracy)
+# print("Movement Accuracy", accuracy_modified)
 
 
 # pcas = []
