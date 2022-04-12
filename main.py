@@ -11,6 +11,7 @@ from matplotlib.colors import Normalize
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import warnings
+from sklearn.ensemble import RandomForestClassifier
 import time
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import GridSearchCV
@@ -192,7 +193,12 @@ y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
 y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 print(y_train)
 
-clf = svm.SVC(kernel="rbf")
+X_train.to_csv('X_train.csv')
+X_test.to_csv('X_test.csv')
+y_train.to_csv('y_train.csv')
+y_test.to_csv('y_test.csv')
+#clf = svm.SVC(kernel="rbf")
+clf = RandomForestClassifier(n_estimators=100)
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
