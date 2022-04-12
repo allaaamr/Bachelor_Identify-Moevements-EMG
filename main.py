@@ -195,7 +195,7 @@ x = StandardScaler().fit_transform(x)
 # y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 
 pcas_acc=[]
-for p in range(5,20):
+for p in range(5,50):
     pca = PCA(n_components=p)
     principalComponents = pca.fit_transform(x)
     principalDf = pd.DataFrame(data=principalComponents)
@@ -218,9 +218,9 @@ for p in range(5,20):
     pcas_acc.append(accuracy_modified)
 
 plt.figure(figsize=(10,6))
-plt.plot(range(1,20),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
-plt.title('Accuracy vs. K Value')
-plt.xlabel('K')
+plt.plot(range(5,50),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
+plt.title('Accuracy vs. PCA components')
+plt.xlabel('PCA components')
 plt.ylabel('Accuracy')
 plt.show()
 
