@@ -189,37 +189,40 @@ y=y.astype('int')
 x = StandardScaler().fit_transform(x)
 
 
-X_train = final_df[final_df['Train'] == 1].loc[:, features]
-X_test = final_df[final_df['Train'] == 0].loc[:, features]
-y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
-y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
+# X_train = final_df[final_df['Train'] == 1].loc[:, features]
+# X_test = final_df[final_df['Train'] == 0].loc[:, features]
+# y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
+# y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 
-X_train = MinMaxScaler().fit_transform(X_train)
-X_test = MinMaxScaler().fit_transform(X_test)
-#clf = RandomForestClassifier(n_estimators=100)
-
-accuracies_knn = []
-for i in range(1,20):
-    knn = KNeighborsClassifier(n_neighbors=i)
+pcas_acc=[]
+for p in range(5,20):
+    pca = PCA(n_components=p)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data=principalComponents)
+    finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
+    X_train = finalDf[finalDf['Train'] == 1]
+    X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    X_test = finalDf[finalDf['Train'] == 0]
+    X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
+    y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
+    y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
+    knn = KNeighborsClassifier(n_neighbors=1)
     knn.fit(X_train,y_train)
     pred_i = knn.predict(X_test)
     accuracy = accuracy_score(y_test, pred_i)
     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
     y_predicted_new = [most_frequent(pred_i[x:x + 11]) for x in range(0, len(pred_i), 11)]
     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-    print("KNN ", i)
     print("Window Accuracy",accuracy)
     print("Movement Accuracy", accuracy_modified)
-    accuracies_knn.append(accuracy_modified)
+    pcas_acc.append(accuracy_modified)
 
 plt.figure(figsize=(10,6))
-plt.plot(range(1,20),accuracies_knn,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
+plt.plot(range(1,20),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
 plt.title('Accuracy vs. K Value')
 plt.xlabel('K')
 plt.ylabel('Accuracy')
 plt.show()
-req_k_value = accuracies_knn.index(max(accuracies_knn))+1
-print("Maximum accuracy:-",max(accuracies_knn),"at K =",req_k_value)
 
 # clf = KNeighborsClassifier(n_neighbors=3)
 # clf.fit(X_train, y_train)
