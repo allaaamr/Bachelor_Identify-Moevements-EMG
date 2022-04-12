@@ -16,6 +16,7 @@ import time
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.neighbors import KNeighborsClassifier
 
 warnings.filterwarnings("ignore")
 
@@ -194,7 +195,16 @@ y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
 y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 
 
-clf = RandomForestClassifier(n_estimators=100)
+#clf = RandomForestClassifier(n_estimators=100)
+
+error_rate = []
+for i in range(1,40):
+    knn = KNeighborsClassifier(n_neighbors=i)
+    knn.fit(x_train,y_train)
+    pred_i = knn.predict(x_test)
+    error_rate.append(np.mean(pred_i != y_test))
+    
+clf = KNeighborsClassifier(n_neighbors=3)
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
@@ -204,7 +214,6 @@ accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
 print("Window Accuracy",accuracy)
 print("Movement Accuracy", accuracy_modified)
-
 
 
 # pcas = []
