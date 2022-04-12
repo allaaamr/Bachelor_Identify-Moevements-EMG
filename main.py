@@ -195,11 +195,6 @@ y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
 y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 
 
-# X_train.to_csv('X_train.csv')
-# X_test.to_csv('X_test.csv')
-# y_train.to_csv('y_train.csv')
-# y_test.to_csv('y_test.csv')
-#clf = svm.SVC(kernel="rbf")
 clf = RandomForestClassifier(n_estimators=100)
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
@@ -210,6 +205,8 @@ accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
 print("Window Accuracy",accuracy)
 print("Movement Accuracy", accuracy_modified)
+
+
 
 # pcas = []
 # for p in range(5,25):
