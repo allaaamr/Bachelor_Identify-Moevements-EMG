@@ -17,6 +17,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 
 warnings.filterwarnings("ignore")
 
@@ -188,7 +189,6 @@ y = final_df.loc[:,['Movement']].values
 y=y.astype('int')
 x = StandardScaler().fit_transform(x)
 
-
 # X_train = final_df[final_df['Train'] == 1].loc[:, features]
 # X_test = final_df[final_df['Train'] == 0].loc[:, features]
 # y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
@@ -206,9 +206,10 @@ for p in range(5,50):
     X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
     y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
     y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
-    knn = KNeighborsClassifier(n_neighbors=1)
-    knn.fit(X_train,y_train)
-    pred_i = knn.predict(X_test)
+
+    model = LogisticRegression()
+    model.fit(X_train,y_train)
+    pred_i = model.predict(X_test)
     accuracy = accuracy_score(y_test, pred_i)
     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
     y_predicted_new = [most_frequent(pred_i[x:x + 11]) for x in range(0, len(pred_i), 11)]
