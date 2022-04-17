@@ -18,7 +18,6 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-
 warnings.filterwarnings("ignore")
 
 class MidpointNormalize(Normalize):
@@ -207,7 +206,7 @@ for p in range(5,50):
     y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
     y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 
-    model = LogisticRegression()
+    model = KNeighborsClassifier(n_neighbors=1)
     model.fit(X_train,y_train)
     pred_i = model.predict(X_test)
     accuracy = accuracy_score(y_test, pred_i)
