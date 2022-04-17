@@ -148,7 +148,7 @@ for s in range(1,28):
                                   'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
                                   'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
                                   'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
-                                  'Train','Movement'})
+                                  'Train','Movement', 'Subject'})
     for e in range(1, 11):
         i = 0
         electrode = 'Electrode' + str(e)
@@ -168,6 +168,7 @@ for s in range(1,28):
                     df.at[i, 'IAV' + str(e)] = iav(M[rep][x:x + 50])
                     df.at[i, 'Movement'] = m
                     df.at[i, 'Train'] = train
+                    df.at[i, 'Subject'] = s
                     i += 1
 
     final_df = final_df.append(df, ignore_index=True)
@@ -187,26 +188,36 @@ x = final_df.loc[:, features]
 y = final_df.loc[:,['Movement']].values
 y=y.astype('int')
 x = StandardScaler().fit_transform(x)
+acc=[]
+# for sub in range(1,28):
+#     X_train = final_df[final_df['Subject'] == sub].loc[:, features]
+#     X_test = final_df[final_df['Subject'] != sub].loc[:, features]
+#     y_train = final_df[final_df['Subject'] == sub]['Movement'].astype('int')
+#     y_test = final_df[final_df['Subject'] != sub]['Movement'].astype('int')
+#     model = RandomForestClassifier(n_estimators=100)
+#     model.fit(X_train,y_train)
+#     pred_i = model.predict(X_test)
+#     accuracy = accuracy_score(y_test, pred_i)
+#     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+#     y_predicted_new = [most_frequent(pred_i[x:x + 11]) for x in range(0, len(pred_i), 11)]
+#     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+#     print("Window Accuracy",accuracy)
+#     print("Movement Accuracy", accuracy_modified)
+#     acc.append(accuracy_modified)
 
-# X_train = final_df[final_df['Train'] == 1].loc[:, features]
-# X_test = final_df[final_df['Train'] == 0].loc[:, features]
-# y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
-# y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
-
-pcas_acc=[]
 for p in range(5,50):
     pca = PCA(n_components=p)
     principalComponents = pca.fit_transform(x)
     principalDf = pd.DataFrame(data=principalComponents)
-    finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
-    X_train = finalDf[finalDf['Train'] == 1]
-    X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
-    X_test = finalDf[finalDf['Train'] == 0]
-    X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
-    y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
-    y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
+    finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train'], final_df['Subject']], axis=1)
 
-    model = KNeighborsClassifier(n_neighbors=1)
+    X_train = final_df[final_df['Subject'] == 25].loc[:, features]
+    X_test = final_df[final_df['Subject'] != 25].loc[:, features]
+    y_train = final_df[final_df['Subject'] == 25]['Movement'].astype('int')
+    y_test = final_df[final_df['Subject'] != 25]['Movement'].astype('int')
+    print(X_train)
+    print(X_test)
+    model = RandomForestClassifier(n_estimators=100)
     model.fit(X_train,y_train)
     pred_i = model.predict(X_test)
     accuracy = accuracy_score(y_test, pred_i)
@@ -215,14 +226,14 @@ for p in range(5,50):
     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
     print("Window Accuracy",accuracy)
     print("Movement Accuracy", accuracy_modified)
-    pcas_acc.append(accuracy_modified)
+    acc.append(accuracy_modified)
 
-plt.figure(figsize=(10,6))
-plt.plot(range(5,50),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
-plt.title('Accuracy vs. PCA components')
-plt.xlabel('PCA components')
-plt.ylabel('Accuracy')
-plt.show()
+# plt.figure(figsize=(10,6))
+# plt.plot(range(5,50),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
+# plt.title('Accuracy vs. PCA components')
+# plt.xlabel('PCA components')
+# plt.ylabel('Accuracy')
+# plt.show()
 
 # clf = KNeighborsClassifier(n_neighbors=3)
 # clf.fit(X_train, y_train)
@@ -265,28 +276,28 @@ plt.show()
 # pca_window.append(accuracy)
 # pca_movement.append(accuracy_modified)
 
-#subjects = ['S1', 'S2', 'S3']
-# subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
-#             'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
-#             'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
+print(acc)
+subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
+            'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
+            'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
 # pca = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
-# x = np.arange(len(pca))  # the label locations
-# width = 0.1  # the width of the bars
-# # #
-# fig, ax = plt.subplots()
-# #window = ax.bar(x - width/2, window, width, label='Window Accuracy')
-# movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
-#
-# ax.set_ylabel('Accuracy')
-# ax.set_xlabel('PCA')
-# ax.set_title('PCAs Movement Accuracies')
-# #ax.set_title('Average Subject Accuracies Per PCA')
-# ax.set_xticks(x, pca)
-# ax.legend()
-# #ax.bar_label(window)
-# ax.bar_label(movement)
-# fig.tight_layout()
-# plt.show()
+x = np.arange(len(subjects))  # the label locations
+width = 0.1  # the width of the bars
+# #
+fig, ax = plt.subplots()
+#window = ax.bar(x - width/2, window, width, label='Window Accuracy')
+movement = ax.bar(x, acc, width, label='Movement Accuracy')
+
+ax.set_ylabel('Accuracy')
+ax.set_xlabel('Subject')
+ax.set_title('Accuracy when one subject is the training set')
+#ax.set_title('Average Subject Accuracies Per PCA')
+ax.set_xticks(x, subjects)
+ax.legend()
+#ax.bar_label(window)
+ax.bar_label(movement)
+fig.tight_layout()
+plt.show()
 
 # pca = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 # w = [0.45, 0.67, 0.76, 0.82, 0.86, 0.86, 0.88, 0.89, 0.89, 0.89, 0.89]
