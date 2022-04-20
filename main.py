@@ -135,7 +135,7 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
                            'Train','Movement'})
 
-for s in range(1,28):
+for s in range(2,28):
     subject = 'S' + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
