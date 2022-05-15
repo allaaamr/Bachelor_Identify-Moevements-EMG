@@ -18,6 +18,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+
 warnings.filterwarnings("ignore")
 
 class MidpointNormalize(Normalize):
@@ -152,7 +156,7 @@ for s in range(1,28):
     for e in range(1, 11):
         i = 0
         electrode = 'Electrode' + str(e)
-        for m in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,17,18,19,21,22,23,24,25,26,27,31,32,34,42,44,45,46,47,49,50]:
+        for m in range(1,51):
             M = dff['Movement'+str(m)][electrode]
             for r in range(1, 7):
                 rep = "R" + str(r)
@@ -233,6 +237,22 @@ accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 print("Window Accuracy",accuracy)
 print("Movement Accuracy", accuracy_modified)
 
+#Get the confusion matrix
+cf_matrix = confusion_matrix(y_test_new, y_predicted_new)
+ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
+
+ax.set_title('Movements Classification Confusion Matrix\n');
+ax.set_xlabel('\nPredicted Movement')
+ax.set_ylabel('Actual Movement ');
+
+## Ticket labels - List must be in alphabetical order
+ax.xaxis.set_xticks(range(1,51))
+ax.yaxis.set_yticks(range(1,51))
+
+ax.xaxis.set_ticklabels(range(1,51))
+ax.yaxis.set_ticklabels(range(1,51))
+## Display the visualization of the Confusion Matrix.
+plt.show()
 
 # pcas = []
 # for p in range(5,25):
@@ -263,18 +283,18 @@ print("Movement Accuracy", accuracy_modified)
 # pca_window.append(accuracy)
 # pca_movement.append(accuracy_modified)
 
-movements = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,17,18,19,21,22,23,24,25,26,27,31,32,34,42,44,45,46,47,49,50]
+
 #subjects = ['S1', 'S2', 'S3']
 # subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
 #             'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
 #             'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
 # pca = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
-x = np.arange(len(movements))  # the label locations
-width = 0.1  # the width of the bars
-# # #
-fig, ax = plt.subplots()
-#window = ax.bar(x - width/2, window, width, label='Window Accuracy')
-movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
+# x = np.arange(len(movements))  # the label locations
+# width = 0.1  # the width of the bars
+# # # #
+# fig, ax = plt.subplots()
+# #window = ax.bar(x - width/2, window, width, label='Window Accuracy')
+# movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
 
 # ax.set_ylabel('Accuracy')
 # ax.set_xlabel('PCA')
