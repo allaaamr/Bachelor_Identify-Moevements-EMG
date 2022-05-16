@@ -188,79 +188,79 @@ features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
             'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
             'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
             'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
-# x = final_df.loc[:, features]
-# y = final_df.loc[:,['Movement']].values
-# y=y.astype('int')
+x = final_df.loc[:, features]
+y = final_df.loc[:,['Movement']].values
+y=y.astype('int')
 # x = StandardScaler().fit_transform(x)
 
-X_train = final_df[final_df['Train'] == 1].loc[:, features]
-X_test = final_df[final_df['Train'] == 0].loc[:, features]
-y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
-y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
-# pcas_acc=[]
-# for p in range(5,50):
-#     pca = PCA(n_components=p)
-#     principalComponents = pca.fit_transform(x)
-#     principalDf = pd.DataFrame(data=principalComponents)
-#     finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
-#     X_train = finalDf[finalDf['Train'] == 1]
-#     X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
-#     X_test = finalDf[finalDf['Train'] == 0]
-#     X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
-#     y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
-#     y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
+# X_train = final_df[final_df['Train'] == 1].loc[:, features]
+# X_test = final_df[final_df['Train'] == 0].loc[:, features]
+# y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
+# y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
+# # pcas_acc=[]
+# # for p in range(5,50):
+# #     pca = PCA(n_components=p)
+# #     principalComponents = pca.fit_transform(x)
+# #     principalDf = pd.DataFrame(data=principalComponents)
+# #     finalDf = pd.concat([principalDf, final_df['Movement'], final_df['Train']], axis=1)
+# #     X_train = finalDf[finalDf['Train'] == 1]
+# #     X_train.drop({'Movement', 'Train'}, axis=1, inplace=True)
+# #     X_test = finalDf[finalDf['Train'] == 0]
+# #     X_test.drop({'Movement', 'Train'}, axis=1, inplace=True)
+# #     y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
+# #     y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
+# #
+# #     model = KNeighborsClassifier(n_neighbors=1)
+# #     model.fit(X_train,y_train)
+# #     pred_i = model.predict(X_test)
+# #     accuracy = accuracy_score(y_test, pred_i)
+# #     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+# #     y_predicted_new = [most_frequent(pred_i[x:x + 11]) for x in range(0, len(pred_i), 11)]
+# #     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+# #     print("Window Accuracy",accuracy)
+# #     print("Movement Accuracy", accuracy_modified)
+# #     pcas_acc.append(accuracy_modified)
+# #
+# # plt.figure(figsize=(10,6))
+# # plt.plot(range(5,50),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
+# # plt.title('Accuracy vs. PCA components')
+# # plt.xlabel('PCA components')
+# # plt.ylabel('Accuracy')
+# # plt.show()
+# clf = RandomForestClassifier()
+# clf.fit(X_train, y_train)
+# y_pred = clf.predict(X_test)
+# accuracy = accuracy_score(y_test, y_pred)
+# y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+# y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+# accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 #
-#     model = KNeighborsClassifier(n_neighbors=1)
-#     model.fit(X_train,y_train)
-#     pred_i = model.predict(X_test)
-#     accuracy = accuracy_score(y_test, pred_i)
-#     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-#     y_predicted_new = [most_frequent(pred_i[x:x + 11]) for x in range(0, len(pred_i), 11)]
-#     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-#     print("Window Accuracy",accuracy)
-#     print("Movement Accuracy", accuracy_modified)
-#     pcas_acc.append(accuracy_modified)
+# print("Window Accuracy",accuracy)
+# print("Movement Accuracy", accuracy_modified)
 #
-# plt.figure(figsize=(10,6))
-# plt.plot(range(5,50),pcas_acc,color='blue', linestyle='dashed',marker='o',markerfacecolor='red', markersize=10)
-# plt.title('Accuracy vs. PCA components')
-# plt.xlabel('PCA components')
-# plt.ylabel('Accuracy')
+# print(confusion_matrix(y_test_new, y_predicted_new))
+# # Printing the precision and recall, among other metrics
+# print(classification_report(y_test_new, y_predicted_new))
+#
+# #Get the confusion matrix
+# cf_matrix = confusion_matrix(y_test_new, y_predicted_new)
+# ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
+#
+# ax.set_title('Movements Classification Confusion Matrix\n');
+# ax.set_xlabel('\nPredicted Movement')
+# ax.set_ylabel('Actual Movement ');
+#
+# ## Ticket labels - List must be in alphabetical order
+# ax.set_xticks(range(1,51))
+# ax.set_yticks(range(1,51))
+#
+# ax.xaxis.set_ticklabels(range(1,51))
+# ax.yaxis.set_ticklabels(range(1,51))
+# ## Display the visualization of the Confusion Matrix.
 # plt.show()
-clf = RandomForestClassifier()
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-print("Window Accuracy",accuracy)
-print("Movement Accuracy", accuracy_modified)
-
-print(confusion_matrix(y_test_new, y_predicted_new))
-# Printing the precision and recall, among other metrics
-print(classification_report(y_test_new, y_predicted_new))
-
-#Get the confusion matrix
-cf_matrix = confusion_matrix(y_test_new, y_predicted_new)
-ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
-
-ax.set_title('Movements Classification Confusion Matrix\n');
-ax.set_xlabel('\nPredicted Movement')
-ax.set_ylabel('Actual Movement ');
-
-## Ticket labels - List must be in alphabetical order
-ax.set_xticks(range(1,51))
-ax.set_yticks(range(1,51))
-
-ax.xaxis.set_ticklabels(range(1,51))
-ax.yaxis.set_ticklabels(range(1,51))
-## Display the visualization of the Confusion Matrix.
-plt.show()
-
-# pcas = []
-# for p in range(5,25):
+pcas =[0.44, 0.56, 0.64, 0.68, 0.73, 0.76, 0.77, 0.77, 0.78, 0.79, 0.79, 0.79, 0.79, 0.8, 0.8, 0.8, 0.79, 0.8, 0.81, 0.79, 0.81, 0.79, 0.8, 0.8, 0.816, 0.8, 0.81, 0.81, 0.81, 0.81, 0.81, 0.79, 0.81, 0.81, 0.79, 0.81, 0.8, 0.79, 0.8, 0.8, 0.8, 0.79, 0.8, 0.79, 0.79, 0.8]
+# for p in range(5,51):
 #     pca = PCA(n_components=p)
 #     principalComponents = pca.fit_transform(x)
 #     principalDf = pd.DataFrame(data=principalComponents)
@@ -273,7 +273,7 @@ plt.show()
 #     y_train = finalDf[finalDf['Train'] == 1]['Movement'].astype('int')
 #     y_test = finalDf[finalDf['Train'] == 0]['Movement'].astype('int')
 #
-#     clf = svm.SVC(kernel="linear")
+#     clf = RandomForestClassifier()
 #     clf.fit(X_train, y_train)
 #     y_pred = clf.predict(X_test)
 #     accuracy = accuracy_score(y_test, y_pred)
@@ -284,33 +284,33 @@ plt.show()
 #     print("Window Accuracy",accuracy)
 #     print("Movement Accuracy", accuracy_modified)
 #     pcas.append(accuracy_modified)
-
+print(pcas)
 # pca_window.append(accuracy)
 # pca_movement.append(accuracy_modified)
-
+# print(pcas)
 
 #subjects = ['S1', 'S2', 'S3']
 # subjects = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10',
 #             'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19',
-#             'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27']
-# pca = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
-# x = np.arange(len(movements))  # the label locations
-# width = 0.1  # the width of the bars
-# # # #
-# fig, ax = plt.subplots()
+#             'S2l)
+x = range(5,51)  # the label locations
+print(x)
+width = 0.1  # the width of the bars
+# # #
+fig, ax = plt.subplots()
 # #window = ax.bar(x - width/2, window, width, label='Window Accuracy')
-# movement = ax.bar(x, pca_movement, width, label='Movement Accuracy')
+movement = ax.bar(x, pcas, width, label='Movement Accuracy')
 
-# ax.set_ylabel('Accuracy')
-# ax.set_xlabel('PCA')
-# ax.set_title('PCAs Movement Accuracies')
+ax.set_ylabel('Accuracy')
+ax.set_xlabel('PCA')
+ax.set_title('PCAs Movement Accuracies')
 # #ax.set_title('Average Subject Accuracies Per PCA')
-# ax.set_xticks(x, pca)
-# ax.legend()
+ax.set_xticks(x, range(5,51))
+ax.legend()
 # #ax.bar_label(window)
-# ax.bar_label(movement)
+#ax.bar_label(pcas)
 # fig.tight_layout()
-# plt.show()
+plt.show()
 
 # pca = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 # w = [0.45, 0.67, 0.76, 0.82, 0.86, 0.86, 0.88, 0.89, 0.89, 0.89, 0.89]
