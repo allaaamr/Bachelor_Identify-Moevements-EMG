@@ -20,7 +20,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
 
 warnings.filterwarnings("ignore")
 
@@ -139,43 +139,44 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
                            'Train','Movement'})
 
-for s in range(1,28):
-    subject = 'S' + str(s)
-    dff = pd.DataFrame.from_dict(extractSubject(subject))
-    df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
-                                  'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
-                                  'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
-                                  'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
-                                  'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
-                                  'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
-                                  'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
-                                  'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
-                                  'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
-                                  'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
-                                  'Train','Movement'})
-    for e in range(1, 11):
-        i = 0
-        electrode = 'Electrode' + str(e)
-        for m in range(1,51):
-            M = dff['Movement'+str(m)][electrode]
-            for r in range(1, 7):
-                rep = "R" + str(r)
-                if (r in [1, 3, 4, 6]):
-                    train = 1
-                else:
-                    train = 0
-                for x in range(0, len(M[rep]), 48):
-                    df.at[i, 'RMS' + str(e)] = rms(M[rep][x:x + 50])
-                    df.at[i, 'MAV' + str(e)] = mav(M[rep][x:x + 50])
-                    df.at[i, 'VAR' + str(e)] = var(M[rep][x:x + 50])
-                    df.at[i, 'WL' + str(e)] = wl(M[rep][x:x + 50])
-                    df.at[i, 'IAV' + str(e)] = iav(M[rep][x:x + 50])
-                    df.at[i, 'Movement'] = m
-                    df.at[i, 'Train'] = train
-                    i += 1
-
-    final_df = final_df.append(df, ignore_index=True)
-
+# for s in range(1,28):
+#     subject = 'S' + str(s)
+#     dff = pd.DataFrame.from_dict(extractSubject(subject))
+#     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+#                                   'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+#                                   'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+#                                   'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+#                                   'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+#                                   'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+#                                   'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+#                                   'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+#                                   'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+#                                   'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
+#                                   'Train','Movement'})
+#     for e in range(1, 11):
+#         i = 0
+#         electrode = 'Electrode' + str(e)
+#         for m in range(1,51):
+#             M = dff['Movement'+str(m)][electrode]
+#             for r in range(1, 7):
+#                 rep = "R" + str(r)
+#                 if (r in [1, 3, 4, 6]):
+#                     train = 1
+#                 else:
+#                     train = 0
+#                 for x in range(0, len(M[rep]), 48):
+#                     df.at[i, 'RMS' + str(e)] = rms(M[rep][x:x + 50])
+#                     df.at[i, 'MAV' + str(e)] = mav(M[rep][x:x + 50])
+#                     df.at[i, 'VAR' + str(e)] = var(M[rep][x:x + 50])
+#                     df.at[i, 'WL' + str(e)] = wl(M[rep][x:x + 50])
+#                     df.at[i, 'IAV' + str(e)] = iav(M[rep][x:x + 50])
+#                     df.at[i, 'Movement'] = m
+#                     df.at[i, 'Train'] = train
+#                     i += 1
+#
+#     final_df = final_df.append(df, ignore_index=True)
+final_df = pd.read_csv('df.csv')
+#final_df.to_csv('df.csv')
 lab_enc = preprocessing.LabelEncoder()
 features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
             'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
@@ -237,6 +238,10 @@ accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 print("Window Accuracy",accuracy)
 print("Movement Accuracy", accuracy_modified)
 
+print(confusion_matrix(y_test_new, y_predicted_new))
+# Printing the precision and recall, among other metrics
+print(classification_report(y_test_new, y_predicted_new))
+
 #Get the confusion matrix
 cf_matrix = confusion_matrix(y_test_new, y_predicted_new)
 ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
@@ -246,8 +251,8 @@ ax.set_xlabel('\nPredicted Movement')
 ax.set_ylabel('Actual Movement ');
 
 ## Ticket labels - List must be in alphabetical order
-ax.xaxis.set_xticks(range(1,51))
-ax.yaxis.set_yticks(range(1,51))
+ax.set_xticks(range(1,51))
+ax.set_yticks(range(1,51))
 
 ax.xaxis.set_ticklabels(range(1,51))
 ax.yaxis.set_ticklabels(range(1,51))
