@@ -8,6 +8,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import warnings
+from tensorflow.keras.layers import Dense
+from tensorflow.keras import Input
+
+warnings.filterwarnings("ignore")
+
 
 def most_frequent(List):
     occurence_count = Counter(List)
@@ -99,7 +105,7 @@ def extractSubject(name):
             Electrodes["Electrode{0}".format(e)] = temp
         Movements["Movement{0}".format(m)] = Electrodes
     return Movements
-print("-----****")
+
 def extractSubjectAngles(name):
     ex1Path = 'Kinematics/' + name + '/' + name + '_E1_A1.mat'
     print(ex1Path)
@@ -185,8 +191,7 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                                  'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
                                  'Train'})
 
-df_angle = pd.DataFrame(columns={'MCP2_F'})
-
+df_angle = pd.DataFrame(columns={'CMC1_A'})
 
 i = 0
 for s in range(1,8):
@@ -199,9 +204,6 @@ for s in range(1,8):
             for x in range(0, len(M[rep]), 48):
                 df_angle.at[i, 'CMC1_A'] = mean(M[rep][x:x + 50])
                 i += 1
-print(df_angle)
-
-
 
 for s in range(1,8):
     subject = 'S' + str(s)
@@ -252,47 +254,49 @@ features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
             'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
             'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
             'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
-# X_train = df[df['Train'] == 1].loc[:, features]
-# X_test = df[df['Train'] == 0].loc[:, features]
-# y_train = df[df['Train'] == 1]['CMC1_A'].astype('int')
-# y_test = df[df['Train'] == 0]['CMC1_A'].astype('int')
 
-# clf = KNeighborsClassifier(n_neighbors=1)
-# clf.fit(X_train, y_train)
-# y_pred = clf.predict(X_test)
-# accuracy = accuracy_score(y_test, y_pred)
-# y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-# y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-# accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-#
-# print("Window Accuracy",accuracy)
-# print("Movement Accuracy", accuracy_modified)
+X_train = df[df['Train'] == 1].loc[:, features]
+X_test = df[df['Train'] == 0].loc[:, features]
+y_train = df[df['Train'] == 1]['CMC1_A'].astype('int')
+y_test = df[df['Train'] == 0]['CMC1_A'].astype('int')
+print(X_train.shape)
+clf = KNeighborsClassifier(n_neighbors=1)
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-x = final_df.loc[:, features]
-y = final_df.loc[:,['CMC1_A']].values
-y=y.astype('int')
-x = StandardScaler().fit_transform(x)
+# input = Input()
 
-for p in range(5,51):
-    pca = PCA(n_components=p)
-    principalComponents = pca.fit_transform(x)
-    principalDf = pd.DataFrame(data=principalComponents)
-    finalDf = pd.concat([principalDf, final_df['CMC1_A'], final_df['Train']], axis=1)
 
-    X_train = finalDf[finalDf['Train'] == 1]
-    X_train.drop({'CMC1_A', 'Train'}, axis=1, inplace=True)
-    X_test = finalDf[finalDf['Train'] == 0]
-    X_test.drop({'CMC1_A', 'Train'}, axis=1, inplace=True)
-    y_train = finalDf[finalDf['Train'] == 1]['CMC1_A'].astype('int')
-    y_test = finalDf[finalDf['Train'] == 0]['CMC1_A'].astype('int')
 
-    clf = KNeighborsClassifier(n_neighbors=1)
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-    y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-    accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+# x = final_df.loc[:, features]
+# y = final_df.loc[:,['CMC1_A']].values
+# y=y.astype('int')
+# x = StandardScaler().fit_transform(x)
 
-    print("Window Accuracy",accuracy)
-    print("Movement Accuracy", accuracy_modified)
+# for p in range(5,51):
+#     pca = PCA(n_components=p)
+#     principalComponents = pca.fit_transform(x)
+#     principalDf = pd.DataFrame(data=principalComponents)
+#     finalDf = pd.concat([principalDf, final_df['CMC1_A'], final_df['Train']], axis=1)
+
+#     X_train = finalDf[finalDf['Train'] == 1]
+#     X_train.drop({'CMC1_A', 'Train'}, axis=1, inplace=True)
+#     X_test = finalDf[finalDf['Train'] == 0]
+#     X_test.drop({'CMC1_A', 'Train'}, axis=1, inplace=True)
+#     y_train = finalDf[finalDf['Train'] == 1]['CMC1_A'].astype('int')
+#     y_test = finalDf[finalDf['Train'] == 0]['CMC1_A'].astype('int')
+
+#     clf = KNeighborsClassifier(n_neighbors=1)
+#     clf.fit(X_train, y_train)
+#     y_pred = clf.predict(X_test)
+#     accuracy = accuracy_score(y_test, y_pred)
+#     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+#     y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+#     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+
+#     print("Window Accuracy",accuracy)
+#     print("Movement Accuracy", accuracy_modified)

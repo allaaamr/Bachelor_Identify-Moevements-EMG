@@ -20,6 +20,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 from sklearn.metrics import confusion_matrix, classification_report
 
 warnings.filterwarnings("ignore")
@@ -193,7 +194,6 @@ features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
 # y = final_df.loc[:,['Movement']].values
 # y=y.astype('int')
 # # x = StandardScaler().fit_transform(x)
-
 X_train = final_df[final_df['Train'] == 1].loc[:, features]
 X_test = final_df[final_df['Train'] == 0].loc[:, features]
 y_train = final_df[final_df['Train'] == 1]['Movement'].astype('int')
@@ -228,16 +228,18 @@ y_test = final_df[final_df['Train'] == 0]['Movement'].astype('int')
 # # # plt.xlabel('PCA components')
 # # # plt.ylabel('Accuracy')
 # # # plt.show()
-clf = RandomForestClassifier()
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
 
-print("Window Accuracy",accuracy)
-print("Movement Accuracy", accuracy_modified)
+
+# clf = RandomForestClassifier()
+# clf.fit(X_train, y_train)
+# y_pred = clf.predict(X_test)
+# accuracy = accuracy_score(y_test, y_pred)
+# y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
+# y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
+# accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+#
+# print("Window Accuracy",accuracy)
+# print("Movement Accuracy", accuracy_modified)
 
 # print(confusion_matrix(y_test_new, y_predicted_new))
 # # Printing the precision and recall, among other metrics
