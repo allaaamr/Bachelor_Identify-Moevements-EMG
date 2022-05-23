@@ -3,14 +3,13 @@ import numpy as np
 import scipy.io
 import math
 from collections import Counter
-from sklearn.metrics import accuracy_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import copy
 import warnings
-from tensorflow.keras.layers import Dense
-from tensorflow.keras import Input
+from tensorflow.keras.layers import Dense, Input
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras import Model
+from tensorflow.keras.optimizers import Adam
+
 
 warnings.filterwarnings("ignore")
 
@@ -105,7 +104,6 @@ def extractSubject(name):
             Electrodes["Electrode{0}".format(e)] = temp
         Movements["Movement{0}".format(m)] = Electrodes
     return Movements
-
 def extractSubjectAngles(name):
     ex1Path = 'Kinematics/' + name + '/' + name + '_E1_A1.mat'
     print(ex1Path)
@@ -126,7 +124,7 @@ def extractSubjectAngles(name):
     anglesDF3 = pd.DataFrame.from_dict(angles3)
     stimulus3 = ex3['restimulus']
 
-    CMC1_A = {}
+    Movements = {}
     for m in range(1, 51):
         if (m < 11):
             movementIndices = np.where(stimulus == m)[0]
@@ -141,43 +139,24 @@ def extractSubjectAngles(name):
             repetitions = consecutive(movementIndices)
             angle = anglesDF3
 
-        temp = {}
-        for r in range(1, 7):
-            startIndex = repetitions[r - 1][0]
-            LastIndex = repetitions[r - 1][len(repetitions[r - 1]) - 1]
-            df = angle.iloc[startIndex:LastIndex, 1]
-            df.reset_index(drop=True, inplace=True)
-            narray = df.to_numpy(dtype=None, copy=False)
-            temp["R{0}".format(r)] = narray
+        Angles = {}
+        for a in range(1,23):
+            if a == 6:
+               Angles["Angle6"] = ""
+               continue
 
-        CMC1_A["Movement{0}".format(m)] = temp
+            temp={}
+            for r in range(1, 7):
+                startIndex = repetitions[r - 1][0]
+                LastIndex = repetitions[r - 1][len(repetitions[r - 1]) - 1]
+                df = angle.iloc[startIndex:LastIndex, a-1]
+                df.reset_index(drop=True, inplace=True)
+                narray = df.to_numpy(dtype=None, copy=False)
+                temp["R{0}".format(r)] = narray
+            Angles["Angle{0}".format(a)] = temp
+        Movements["Movement{0}".format(m)] = Angles
 
-    # CMC1_A = {}
-    # for m in range(1, 51):
-    #     if (m < 11):
-    #         movementIndices = np.where(stimulus == m)[0]
-    #         repetitions = consecutive(movementIndices)
-    #         angle = anglesDF1
-    #     elif (m < 28):
-    #         movementIndices = np.where(stimulus2 == (m - 10))[0]
-    #         repetitions = consecutive(movementIndices)
-    #         angle = anglesDF2
-    #     else:
-    #         movementIndices = np.where(stimulus3 == (m - 27))[0]
-    #         repetitions = consecutive(movementIndices)
-    #         angle = anglesDF3
-    #
-    #     temp = {}
-    #     for r in range(1, 7):
-    #         startIndex = repetitions[r - 1][0]
-    #         LastIndex = repetitions[r - 1][len(repetitions[r - 1]) - 1]
-    #         df = angle.iloc[startIndex:LastIndex, 1]
-    #         df.reset_index(drop=True, inplace=True)
-    #         narray = df.to_numpy(dtype=None, copy=False)
-    #         temp["R{0}".format(r)] = narray
-    #
-    #     CMC1_A["Movement{0}".format(m)] = temp
-    return CMC1_A
+    return Movements
 
 final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                                  'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
@@ -191,20 +170,32 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                                  'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
                                  'Train'})
 
-df_angle = pd.DataFrame(columns={'CMC1_A'})
-
-i = 0
+final_df_angle = pd.DataFrame(columns={})
+df_angle = pd.DataFrame(columns={})
+i=0
 for s in range(1,8):
     subject = 'S' + str(s)
     df_angles = pd.DataFrame.from_dict(extractSubjectAngles(subject))
     for m in range(1,51):
         M = df_angles['Movement'+str(m)]
-        for r in range(1,7):
-            rep = "R" + str(r)
-            for x in range(0, len(M[rep]), 48):
-                df_angle.at[i, 'CMC1_A'] = mean(M[rep][x:x + 50])
-                i += 1
+        start = copy.deepcopy(i)
+        for a in range (1,23):
+            if a==6:
+                continue
 
+            Angles = M['Angle' +str(a)]
+            for r in range(1,7):
+                rep = "R" + str(r)
+                for x in range(0, len(Angles[rep]), 48):
+                    df_angle.at[i, a-1] = mean(Angles[rep][x:x + 50])
+                    i += 1
+            if a != 22:
+                i = copy.deepcopy(start)
+    final_df_angle = final_df_angle.append(df_angle, ignore_index=True)            
+                 
+
+print(df_angle.shape)
+                    
 for s in range(1,8):
     subject = 'S' + str(s)
     dff = pd.DataFrame.from_dict(extractSubject(subject))
@@ -240,9 +231,31 @@ for s in range(1,8):
                     i += 1
     final_df = final_df.append(df, ignore_index=True)
 
-final_df['CMC1_A'] = df_angle['CMC1_A']
-print(df)
+print(final_df.shape)
+print(df_angle.keys())
+final_df['CMC1_f'] = df_angle[0]
+final_df['CMC1_a'] =  df_angle[1]
+final_df['MCP1'] =  df_angle[2]
+final_df['IP1'] =  df_angle[3]
+final_df['MCP2_f'] =  df_angle[4]
+final_df['PIP2'] =  df_angle[6]
+final_df['MCP3_f'] =  df_angle[7]
+final_df['PIP3'] =  df_angle[8]
+final_df['MCP4_f'] =  df_angle[9]
+final_df['MCP4_a'] =  df_angle[10]
+final_df['PIP4'] =  df_angle[11]
+final_df['CMC5'] =  df_angle[12]
+final_df['MCP5_f'] =  df_angle[13]
+final_df['MCP5_a'] =  df_angle[14]
+final_df['PIP5'] =  df_angle[15]
+final_df['DIP2'] =  df_angle[16]
+final_df['DIP3'] =  df_angle[17]
+final_df['DIP4'] =  df_angle[18]
+final_df['DIP5'] =  df_angle[19]
+final_df['WRIST_F'] =  df_angle[20]
+final_df['WRIST_A'] =  df_angle[21]
 
+print(final_df)
 
 features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
             'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
@@ -253,50 +266,42 @@ features = {'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
             'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
             'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
             'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
-            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10'}
+            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10', }
 
-X_train = df[df['Train'] == 1].loc[:, features]
-X_test = df[df['Train'] == 0].loc[:, features]
-y_train = df[df['Train'] == 1]['CMC1_A'].astype('int')
-y_test = df[df['Train'] == 0]['CMC1_A'].astype('int')
-print(X_train.shape)
-clf = KNeighborsClassifier(n_neighbors=1)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
-
-# input = Input()
+angles = {'CMC1_f','CMC1_a','MCP1','IP1','MCP2_f',
+        'PIP2','MCP3_f','PIP3','MCP4_f','MCP4_a',
+        'PIP4','CMC5','MCP5_f','MCP5_a','PIP5',
+        'DIP2','DIP3','DIP4','DIP5','WRIST_F','WRIST_A'}
 
 
 
-# x = final_df.loc[:, features]
-# y = final_df.loc[:,['CMC1_A']].values
-# y=y.astype('int')
-# x = StandardScaler().fit_transform(x)
+X_train = final_df[final_df['Train'] == 1].loc[:, features]
+scalar =  StandardScaler()
+scalar = scalar.fit(X_train)
+X_train = scalar.transform(X_train)
+X_test = final_df[final_df['Train'] == 0].loc[:, features]
+X_test = scalar.transform(X_test)
 
-# for p in range(5,51):
-#     pca = PCA(n_components=p)
-#     principalComponents = pca.fit_transform(x)
-#     principalDf = pd.DataFrame(data=principalComponents)
-#     finalDf = pd.concat([principalDf, final_df['CMC1_A'], final_df['Train']], axis=1)
+y_train = final_df[final_df['Train'] == 1].loc[:, angles]
+y_test = final_df[final_df['Train'] == 0].loc[:, angles]
+y_train.to_csv('angles_y_train.csv')
 
-#     X_train = finalDf[finalDf['Train'] == 1]
-#     X_train.drop({'CMC1_A', 'Train'}, axis=1, inplace=True)
-#     X_test = finalDf[finalDf['Train'] == 0]
-#     X_test.drop({'CMC1_A', 'Train'}, axis=1, inplace=True)
-#     y_train = finalDf[finalDf['Train'] == 1]['CMC1_A'].astype('int')
-#     y_test = finalDf[finalDf['Train'] == 0]['CMC1_A'].astype('int')
 
-#     clf = KNeighborsClassifier(n_neighbors=1)
-#     clf.fit(X_train, y_train)
-#     y_pred = clf.predict(X_test)
-#     accuracy = accuracy_score(y_test, y_pred)
-#     y_test_new = [most_frequent(y_test[x:x + 11]) for x in range(0, len(y_test), 11)]
-#     y_predicted_new = [most_frequent(y_pred[x:x + 11]) for x in range(0, len(y_pred), 11)]
-#     accuracy_modified = accuracy_score(y_test_new, y_predicted_new)
+input = Input(shape =(50,))
+L1 = Dense(50, activation='tanh')(input)
+L2 = Dense(50, activation='tanh')(L1)
+ouput = Dense(21, activation='linear')(L2)
+model = Model(input, ouput)
 
-#     print("Window Accuracy",accuracy)
-#     print("Movement Accuracy", accuracy_modified)
+ 
+model.compile(optimizer=Adam(learning_rate=0.002), loss="mean_squared_error", metrics=['mae', 'mse'])
+
+model.fit(X_train, y_train, epochs=1000)
+print(model.evaluate(X_test, y_test))
+
+print(model.predict(X_train))
+
+
+
+
+
