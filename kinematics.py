@@ -9,8 +9,6 @@ from tensorflow.keras.layers import Dense, Input
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
-
-
 warnings.filterwarnings("ignore")
 
 
@@ -169,7 +167,6 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                                  'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
                                  'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
                                  'Train'})
-
 final_df_angle = pd.DataFrame(columns={})
 df_angle = pd.DataFrame(columns={})
 i=0
@@ -192,8 +189,7 @@ for s in range(1,8):
             if a != 22:
                 i = copy.deepcopy(start)
     final_df_angle = final_df_angle.append(df_angle, ignore_index=True)            
-                 
-
+                
 print(df_angle.shape)
                     
 for s in range(1,8):
@@ -231,8 +227,6 @@ for s in range(1,8):
                     i += 1
     final_df = final_df.append(df, ignore_index=True)
 
-print(final_df.shape)
-print(df_angle.keys())
 final_df['CMC1_f'] = df_angle[0]
 final_df['CMC1_a'] =  df_angle[1]
 final_df['MCP1'] =  df_angle[2]
@@ -287,20 +281,16 @@ y_test = final_df[final_df['Train'] == 0].loc[:, angles]
 y_train.to_csv('angles_y_train.csv')
 
 
-input = Input(shape =(50,))
-L1 = Dense(50, activation='tanh')(input)
-L2 = Dense(50, activation='tanh')(L1)
-ouput = Dense(21, activation='linear')(L2)
-model = Model(input, ouput)
+X_train = final_df[final_df['Train'] == 1].loc[:, features]
+scalar =  StandardScaler()
+scalar = scalar.fit(X_train)
+X_train = scalar.transform(X_train)
+X_test = final_df[final_df['Train'] == 0].loc[:, features]
+X_test = scalar.transform(X_test)
 
- 
-model.compile(optimizer=Adam(learning_rate=0.002), loss="mean_squared_error", metrics=['mae', 'mse'])
-
-model.fit(X_train, y_train, epochs=1000)
-print(model.evaluate(X_test, y_test))
-
-print(model.predict(X_train))
-
+y_train = final_df[final_df['Train'] == 1].loc[:, angles]
+y_test = final_df[final_df['Train'] == 0].loc[:, angles]
+y_train.to_csv('angles_y_train.csv')
 
 
 
