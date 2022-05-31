@@ -22,17 +22,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix, classification_report
-
 warnings.filterwarnings("ignore")
 
-class MidpointNormalize(Normalize):
-    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
-        self.midpoint = midpoint
-        Normalize.__init__(self, vmin, vmax, clip)
-
-    def __call__(self, value, clip=None):
-        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
-        return np.ma.masked_array(np.interp(value, x, y))
 
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
@@ -176,7 +167,7 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
 #                     i += 1
 #
 #     final_df = final_df.append(df, ignore_index=True)
-final_df = pd.read_csv('df.csv')
+# final_df = pd.read_csv('df.csv')
 print(final_df)
 #final_df.to_csv('df.csv')
 lab_enc = preprocessing.LabelEncoder()
