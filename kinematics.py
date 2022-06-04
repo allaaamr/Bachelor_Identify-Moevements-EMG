@@ -170,10 +170,12 @@ final_df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
 final_df_angle = pd.DataFrame(columns={})
 df_angle = pd.DataFrame(columns={})
 i=0
+
+cc = []
 for s in range(1,8):
     subject = 'S' + str(s)
     df_angles = pd.DataFrame.from_dict(extractSubjectAngles(subject))
-    for m in range(1,51):
+    for m in range(45,51):
         M = df_angles['Movement'+str(m)]
         start = copy.deepcopy(i)
         for a in range (1,23):
@@ -188,12 +190,8 @@ for s in range(1,8):
                     i += 1
             if a != 22:
                 i = copy.deepcopy(start)
-    final_df_angle = final_df_angle.append(df_angle, ignore_index=True)            
-                
-print(df_angle.shape)
-                    
-for s in range(1,8):
-    subject = 'S' + str(s)
+        final_df_angle = final_df_angle.append(df_angle, ignore_index=True)     
+
     dff = pd.DataFrame.from_dict(extractSubject(subject))
     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
                            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
@@ -209,7 +207,7 @@ for s in range(1,8):
     for e in range(1, 11):
         electrode = 'Electrode' + str(e)
         i=0
-        for m in range(1,51):
+        for m in range(45,51):
             M = dff['Movement'+str(m)][electrode]
             for r in range(1, 7):
                 rep = "R" + str(r)
@@ -225,7 +223,98 @@ for s in range(1,8):
                     df.at[i, 'IAV' + str(e)] = iav(M[rep][x:x + 50])
                     df.at[i, 'Train'] = train
                     i += 1
-    final_df = final_df.append(df, ignore_index=True)
+        final_df = final_df.append(df, ignore_index=True)
+    print(final_df)
+    final_df['MCP1'] =  df_angle[2]
+    final_df['IP1'] =  df_angle[3]
+    final_df['MCP2_f'] =  df_angle[4]
+    final_df['PIP2'] =  df_angle[6]
+    final_df['MCP3_f'] =  df_angle[7]
+    final_df['PIP3'] =  df_angle[8]
+    final_df['MCP4_f'] =  df_angle[9]
+    final_df['PIP4'] =  df_angle[11]
+    final_df['MCP5_f'] =  df_angle[13]
+    final_df['PIP5'] =  df_angle[15]   
+    features = {
+        # 'RMS1','RMS2','RMS3','RMS3','RMS4','RMS5','RMS6','RMS7','RMS8','RMS9','RMS10',
+            'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10' 
+            }
+
+    angles = {'MCP1','IP1','MCP2_f','PIP2','MCP3_f', 'PIP3','MCP4_f', 'PIP4', 'MCP5_f', 'PIP5'
+            # 'CMC1_f','CMC1_a','MCP1','IP1','MCP2_f',
+            # 'PIP2','MCP3_f','MCP4_f','MCP4_a',
+            # 'PIP4','CMC5','MCP5_a','PIP5',
+            # 'DIP2','DIP4','DIP5', 'DIP3', 'PIP3'
+            }
+    X_train = final_df[final_df['Train'] == 1].loc[:, features]
+    scalar =  StandardScaler()
+    scalar = scalar.fit(X_train)
+    X_train = scalar.transform(X_train)
+    X_test = final_df[final_df['Train'] == 0].loc[:, features]
+    X_test = scalar.transform(X_test)
+
+    y_train = final_df[final_df['Train'] == 1].loc[:, angles]
+    y_test = final_df[final_df['Train'] == 0].loc[:, angles]
+    y_test.to_csv('angles_y_test.csv')
+
+    input = Input(shape =(50,))
+    L1 = Dense(5, activation='tanh')(input)
+    L2 = Dense(5, activation='tanh')(L1)
+    ouput = Dense(10, activation='linear')(L2)
+    model = Model(input, ouput)
+    model.compile(optimizer=Adam(learning_rate=0.002), loss="mean_squared_error", metrics=['mse'])
+    model.fit(X_train, y_train, epochs=100)
+    x = model.evaluate(X_test, y_test)
+    print(x)
+    cc.append(x)
+
+
+                
+# print(df_angle.shape)
+                    
+# for s in range(1,8):
+#     subject = 'S' + str(s)
+#     dff = pd.DataFrame.from_dict(extractSubject(subject))
+#     df = pd.DataFrame(columns={'RMS1', 'MAV1', 'VAR1', 'WL1', 'IAV1',
+#                            'RMS2', 'MAV2', 'VAR2', 'WL2', 'IAV2',
+#                            'RMS3', 'MAV3', 'VAR3', 'WL3', 'IAV3',
+#                            'RMS4', 'MAV4', 'VAR4', 'WL4', 'IAV4',
+#                            'RMS5', 'MAV5', 'VAR5', 'WL5', 'IAV5',
+#                            'RMS6', 'MAV6', 'VAR6', 'WL6', 'IAV6',
+#                            'RMS7', 'MAV7', 'VAR7', 'WL7', 'IAV7',
+#                            'RMS8', 'MAV8', 'VAR8', 'WL8', 'IAV8',
+#                            'RMS9', 'MAV9', 'VAR9', 'WL9', 'IAV9',
+#                            'RMS10', 'MAV10', 'VAR10', 'WL10', 'IAV10',
+#                            'Train'})
+#     for e in range(1, 11):
+#         electrode = 'Electrode' + str(e)
+#         i=0
+#         for m in range(45,51):
+#             M = dff['Movement'+str(m)][electrode]
+#             for r in range(1, 7):
+#                 rep = "R" + str(r)
+#                 if (r in [1, 3, 4, 6]):
+#                     train = 1
+#                 else:
+#                     train = 0
+#                 for x in range(0, len(M[rep]), 48):
+#                     df.at[i, 'RMS' + str(e)] = rms(M[rep][x:x + 50])
+#                     df.at[i, 'MAV' + str(e)] = mav(M[rep][x:x + 50])
+#                     df.at[i, 'VAR' + str(e)] = var(M[rep][x:x + 50])
+#                     df.at[i, 'WL' + str(e)] = wl(M[rep][x:x + 50])
+#                     df.at[i, 'IAV' + str(e)] = iav(M[rep][x:x + 50])
+#                     df.at[i, 'Train'] = train
+#                     i += 1
+#     final_df = final_df.append(df, ignore_index=True)
 
 final_df['CMC1_f'] = df_angle[0]
 final_df['CMC1_a'] =  df_angle[1]
