@@ -67,20 +67,20 @@ def iav(arr):
     return sum(abs(np.array(arr)))
 
 def extractSubject(name):
-    ex1Path = 'DB2/' + name + '/' + name + '_E1_A1.mat'
+    ex1Path = 'DB4/' + name + '/' + name + '_E1_A1.mat'
     print(ex1Path)
     ex1 = scipy.io.loadmat(ex1Path)
     emg = ex1['emg']
     EMGdf = pd.DataFrame.from_dict(emg)
     stimulus = ex1['stimulus']
 
-    ex2Path = 'DB2/' + name + '/' + name + '_E2_A1.mat'
+    ex2Path = 'DB4/' + name + '/' + name + '_E2_A1.mat'
     ex2 = scipy.io.loadmat(ex2Path)
     emg2 = ex2['emg']
     EMGdf2 = pd.DataFrame.from_dict(emg2)
     stimulus2 = ex2['stimulus']
 
-    ex3Path = 'DB2/' + name + '/' + name + '_E3_A1.mat'
+    ex3Path = 'DB4/' + name + '/' + name + '_E3_A1.mat'
     ex3 = scipy.io.loadmat(ex3Path)
     emg3 = ex3['emg']
     EMGdf3 = pd.DataFrame.from_dict(emg3)
